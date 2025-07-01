@@ -1,17 +1,12 @@
-"use client";
-
+"use client"; // cuz client component
 import React, { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { client } from "@/lib/appwrite";
-import { Account, ID, OAuthProvider, Models } from "appwrite";
 import { AuthForm } from "./components/AuthForm";
 import { AnimatedBackground } from "./components/AnimatedBackground";
 
-const account = new Account(client);
-
 export default function HomePage() {
 	const router = useRouter();
-	const [loggedInUser, setLoggedInUser] = useState<Models.User<Models.Preferences> | null>(null);
+	const [loggedInUser, setLoggedInUser] = useState(null);
 	const [mode, setMode] = useState<'login' | 'signup'>('login');
 	const [name, setName] = useState('');
 	const [email, setEmail] = useState('');
@@ -22,18 +17,9 @@ export default function HomePage() {
 	const [checkingSession, setCheckingSession] = useState(true);
 
 	useEffect(() => {
-		const checkSession = async () => {
-			try {
-				await account.get();
-				router.push('/chat');
-			} catch (_error) {
-				setLoggedInUser(null);
-			} finally {
-				setCheckingSession(false);
-			}
-		};
-		checkSession();
-	}, [router]);
+		// Placeholder for session check logic
+		setCheckingSession(false);
+	}, []);
 
 	const handleSubmit = useCallback(async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -41,12 +27,13 @@ export default function HomePage() {
 		setSuccess('');
 		setLoading(true);
 		try {
+			// Implement your own login/signup logic here
 			if (mode === 'login') {
-				await account.createEmailPasswordSession(email, password);
+				// Login logic
 				router.push('/chat');
 			} else {
-				await account.create(ID.unique(), email, password, name);
-				setSuccess('Account created! Please check your email to verify.');
+				// Signup logic
+				setSuccess('We are thriled to welcome you to Project Zero. Login to access your Project Zero chat!');
 			}
 		} catch (err: any) {
 			setError(err.message || 'Something went wrong.');
@@ -56,11 +43,7 @@ export default function HomePage() {
 	}, [mode, email, password, name, router]);
 
 	const loginWithGoogle = useCallback(() => {
-		try {
-			account.createOAuth2Session(OAuthProvider.Google, `${window.location.origin}/`, `${window.location.origin}/`);
-		} catch (err: any) {
-			setError(err.message || 'Something went wrong during Google login.');
-		}
+		// Placeholder for Google login logic
 	}, []);
 
 	if (checkingSession) {
@@ -94,4 +77,3 @@ export default function HomePage() {
 		</main>
 	);
 }
-			

@@ -2,31 +2,26 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { client } from '@/lib/appwrite';
-import { Account, Models } from 'appwrite';
 import { motion } from 'framer-motion';
-
-const account = new Account(client);
 
 const ChatPage = () => {
     const router = useRouter();
-    const [user, setUser] = useState<Models.User<Models.Preferences> | null>(null);
+    const [user, setUser] = useState<{ name?: string } | null>(null);
 
     useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const currentUser = await account.get();
-                setUser(currentUser);
-            } catch (error) {
-                router.push('/'); // Redirect to login if not authenticated
-            }
+        // Simulate user fetching
+        const fetchUser = async () => {
+            // Replace with your user fetching logic
+            const currentUser = { name: 'John Doe' };
+            setUser(currentUser);
         };
-        checkSession();
-    }, [router]);
+
+        fetchUser();
+    }, []);
 
     const handleLogout = async () => {
         try {
-            await account.deleteSession('current');
+            // Implement your logout logic here
             router.push('/');
         } catch (error) {
             console.error("Failed to logout:", error);
@@ -135,4 +130,4 @@ const ChatPage = () => {
     );
 };
 
-export default ChatPage; 
+export default ChatPage;
