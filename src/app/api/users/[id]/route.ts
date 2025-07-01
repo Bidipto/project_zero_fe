@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:8000';
+import EnvironmentVariables from "@/config/config";
+const BACKEND_URL = EnvironmentVariables.BACKEND_URL;
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
     try {
-        const res = await fetch(`${BACKEND_URL}/users/${params.id}`);
+        const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/users/${params.id}`);
         if (!res.ok) throw new Error('try again');
         const user = await res.json();
         return new Response(JSON.stringify(user), { status: 200 });
@@ -16,7 +16,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 export async function PUT(request: Request, { params }: { params: { id: string } }) {
     try {
         const body = await request.json();
-        const res = await fetch(`${BACKEND_URL}/users/${params.id}`, {
+        const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/users/${params.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body),
