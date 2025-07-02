@@ -1,30 +1,26 @@
-import { NextResponse } from "next/server";
-import EnvironmentVariables from "@/config/config";
-const BACKEND_URL = EnvironmentVariables.BACKEND_URL;
+import { NextRequest, NextResponse } from 'next/server';
+import jwt from 'jsonwebtoken';
+const users: { [key: string]: { id: string; name: string; password: string } } = {};
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
-    try {
-        const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/users/${params.id}`);
-        if (!res.ok) throw new Error('try again');
-        const user = await res.json();
-        return new Response(JSON.stringify(user), { status: 200 });
-    } catch (error: any) {
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
+
+export async function POST(req: NextRequest, context: any) {
+    const { id } = await context.params;
+    const { password } = await req.json();
+    const user = users[id];
+    if (!user || user.password !== password) {
+        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
+    const token = jwt.sign({ id: user.id, name: user.name }, JWT_SECRET, { expiresIn: '2h' });
+    return NextResponse.json({ message: 'Login successful', user: { id: user.id, name: user.name }, token });
 }
 
-export async function PUT(request: Request, { params }: { params: { id: string } }) {
-    try {
-        const body = await request.json();
-        const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/users/${params.id}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
-        });
-        if (!res.ok) throw new Error('Failed to update user');
-        const updatedUser = await res.json();
-        return new Response(JSON.stringify(updatedUser), { status: 200 });
-    } catch (error: any) {
-        return new Response(JSON.stringify({ error: error.message }), { status: 500 });
+export async function PUT(req: NextRequest, context: any) {
+    const { id } = await context.params;
+    const { name, password } = await req.json();
+    if (users[id]) {
+        return NextResponse.json({ error: 'User already exists' }, { status: 409 });
     }
+    users[id] = { id, name, password };
+    return NextResponse.json({ message: 'Signup successful', user: { id, name } });
 }

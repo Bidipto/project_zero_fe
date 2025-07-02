@@ -9,9 +9,7 @@ const ChatPage = () => {
     const [user, setUser] = useState<{ name?: string } | null>(null);
 
     useEffect(() => {
-        // Simulate user fetching
         const fetchUser = async () => {
-            // Replace with your user fetching logic
             const currentUser = { name: 'John Doe' };
             setUser(currentUser);
         };
@@ -21,7 +19,6 @@ const ChatPage = () => {
 
     const handleLogout = async () => {
         try {
-            // Implement your logout logic here
             router.push('/');
         } catch (error) {
             console.error("Failed to logout:", error);
@@ -38,7 +35,6 @@ const ChatPage = () => {
 
     return (
         <div className="flex h-screen bg-gray-900 text-white font-sans">
-            {/* Sidebar */}
             <motion.div 
                 initial={{ x: -300 }}
                 animate={{ x: 0 }}
@@ -50,9 +46,8 @@ const ChatPage = () => {
                     <p className="text-sm text-gray-400">Welcome, {user.name}</p>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                    <h2 className="text-lg font-semibold mb-3 text-gray-300">Contacts</h2>
-                    {/* Placeholder contacts */}
-                    {[...Array(10)].map((_, i) => (
+                    <h2 className="text-lg font-semibold mb-3 text-gray-300">Contacts</h2>                    
+                    {[...Array(10)].map((_, i) => ( // Implement 
                         <div key={i} className="flex items-center p-2 rounded-lg hover:bg-gray-700 cursor-pointer mb-2">
                             <div className="w-10 h-10 bg-purple-500 rounded-full mr-3"></div>
                             <div>
