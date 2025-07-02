@@ -9,6 +9,7 @@ export default function HomePage() {
 	const [loggedInUser, setLoggedInUser] = useState<any>(null);
 	const [mode, setMode] = useState<'login' | 'signup'>('login');
 	const [name, setName] = useState('');
+	const [userName, setUserName] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');

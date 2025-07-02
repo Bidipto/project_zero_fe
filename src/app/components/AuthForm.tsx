@@ -10,6 +10,8 @@ interface AuthFormProps {
 	onSubmit: (e: React.FormEvent) => void;
 	name: string;
 	setName: (name: string) => void;
+	username: string;
+	setUserName: (username: string) => void;
 	email: string;
 	setEmail: (email: string) => void;
 	password: string;
@@ -44,6 +46,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 	onSubmit,
 	name,
 	setName,
+	username,
+	setUserName,
 	email,
 	setEmail,
 	password,
@@ -112,7 +116,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 									label="Name"
 									type="text"
 									id="name"
-									placeholder="Your Name"
+									placeholder="Your Name - This is what your friends will see"
 									required
 									value={name}
 									onChange={e => setName(e.target.value)}
@@ -120,6 +124,18 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 								/>
 							</motion.div>
 						)}
+						<motion.div variants={itemVariants}>
+							<FormInput
+								label="Username"
+								type="Name"
+								id="username"
+								placeholder={mode === 'signup' ? "Username - Make sure its a unique one" : "Username"}
+								required
+								value={username}
+								onChange={e => setUserName(e.target.value)}
+								autoComplete="Username"
+							/>
+						</motion.div>
 						<motion.div variants={itemVariants}>
 							<FormInput
 								label="Email"
