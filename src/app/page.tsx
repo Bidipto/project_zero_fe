@@ -3,12 +3,13 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthForm } from "./components/AuthForm";
 import { AnimatedBackground } from "./components/AnimatedBackground";
-
+import EnvironmentVariables from "@/config/config";
 export default function HomePage() {
 	const router = useRouter();
-	const [loggedInUser, setLoggedInUser] = useState(null);
+	const [loggedInUser, setLoggedInUser] = useState<any>(null);
 	const [mode, setMode] = useState<'login' | 'signup'>('login');
 	const [name, setName] = useState('');
+	const [userName, setUserName] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
@@ -17,7 +18,6 @@ export default function HomePage() {
 	const [checkingSession, setCheckingSession] = useState(true);
 
 	useEffect(() => {
-		// Placeholder for session check logic
 		setCheckingSession(false);
 	}, []);
 
@@ -27,23 +27,45 @@ export default function HomePage() {
 		setSuccess('');
 		setLoading(true);
 		try {
-			// Implement your own login/signup logic here
 			if (mode === 'login') {
-				// Login logic
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+					"username": userName,
+					"password": password
+					})
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
+				setLoggedInUser(data.user);
+				if (data.token) {
+					localStorage.setItem('jwt', data.token);
+				}
 				router.push('/chat');
 			} else {
-				// Signup logic
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+						"email": email,
+						"username": userName,
+						"full_name": name,
+						"password": password
+					})
+				});
+				const data = await res.json();
+				if (!res.ok) throw new Error(data?.error ?? 'Signup failed');
 				setSuccess('We are thriled to welcome you to Project Zero. Login to access your Project Zero chat!');
 			}
 		} catch (err: any) {
-			setError(err.message || 'Something went wrong.');
+			setError(err.message ?? 'Something went wrong.');
 		} finally {
 			setLoading(false);
 		}
 	}, [mode, email, password, name, router]);
 
 	const loginWithGoogle = useCallback(() => {
-		// Placeholder for Google login logic
 	}, []);
 
 	if (checkingSession) {
@@ -64,6 +86,8 @@ export default function HomePage() {
 					onSubmit={handleSubmit}
 					name={name}
 					setName={setName}
+					username={userName}
+					setUserName={setUserName}
 					email={email}
 					setEmail={setEmail}
 					password={password}

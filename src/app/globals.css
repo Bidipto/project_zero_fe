@@ -34,4 +34,27 @@
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-start-rgb));
-} 
+  border-radius: 1.25rem; /* 20px rounded corners sitewide */
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Add rounded corners to all major containers and inputs */
+* {
+  border-radius: 1.25rem !important;
+  box-sizing: border-box;
+  margin: 0.15rem;
+  /* Add spacing between elements for a softer look */
+}
+
+input, button, textarea, select, .rounded, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-full {
+  border-radius: 1.25rem !important;
+  margin: 0.15rem;
+}
