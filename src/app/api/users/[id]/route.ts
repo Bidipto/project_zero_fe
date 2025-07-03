@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
 const users: { [key: string]: { id: string; name: string; password: string } } = {};
+import EnvironmentVariables from '@/config/config'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev_secret_key';
+const JWT_SECRET = EnvironmentVariables.JWT_SECRET;
 
 export async function POST(req: NextRequest, context: any) {
     const { id } = await context.params;

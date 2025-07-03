@@ -3,7 +3,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AuthForm } from "./components/AuthForm";
 import { AnimatedBackground } from "./components/AnimatedBackground";
-
+import EnvironmentVariables from "@/config/config";
 export default function HomePage() {
 	const router = useRouter();
 	const [loggedInUser, setLoggedInUser] = useState<any>(null);
@@ -28,10 +28,13 @@ export default function HomePage() {
 		setLoading(true);
 		try {
 			if (mode === 'login') {
-				const res = await fetch(`/api/users/${email}`, {
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/login`, {
 					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ password })
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+					"username": userName,
+					"password": password
+					})
 				});
 				const data = await res.json();
 				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
@@ -41,10 +44,15 @@ export default function HomePage() {
 				}
 				router.push('/chat');
 			} else {
-				const res = await fetch(`/api/users/${email}`, {
-					method: 'PUT',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ name, password })
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+						"email": email,
+						"username": userName,
+						"full_name": name,
+						"password": password
+					})
 				});
 				const data = await res.json();
 				if (!res.ok) throw new Error(data?.error ?? 'Signup failed');
@@ -78,6 +86,8 @@ export default function HomePage() {
 					onSubmit={handleSubmit}
 					name={name}
 					setName={setName}
+					username={userName}
+					setUserName={setUserName}
 					email={email}
 					setEmail={setEmail}
 					password={password}

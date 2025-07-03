@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 
+
 const ChatPage = () => {
     const router = useRouter();
     const [user, setUser] = useState<{ name?: string } | null>(null);
