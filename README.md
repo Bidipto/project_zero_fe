@@ -101,7 +101,7 @@ Licensed under [MIT](LICENSE)
 ## ✨ Maintainer
 
 - [@Bidipto](https://github.com/Bidipto)
-- [@Chagla]()
+- [@Biswaraj](https://github.com/Biswarajace)
 - [@Anubhav](https://github.com/anubhav126)
 
 ---
