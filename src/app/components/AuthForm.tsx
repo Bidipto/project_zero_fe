@@ -16,6 +16,7 @@ interface AuthFormProps {
 	setEmail: (email: string) => void;
 	password: string;
 	setPassword: (password: string) => void;
+	
 	loading: boolean;
 	error: string;
 	success: string;
@@ -136,18 +137,20 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 								autoComplete="Username"
 							/>
 						</motion.div>
-						<motion.div variants={itemVariants}>
-							<FormInput
-								label="Email"
-								type="email"
-								id="email"
-								placeholder="Email Address"
-								required
-								value={email}
-								onChange={e => setEmail(e.target.value)}
-								autoComplete="email"
-							/>
-						</motion.div>
+						{mode === 'signup' && (
+							<motion.div variants={itemVariants}>
+								<FormInput
+									label="Email"
+									type="email"
+									id="email"
+									placeholder="Email - We will never spam you, promise!"
+									required
+									value={email}
+									onChange={e => setEmail(e.target.value)}
+									autoComplete="email"
+								/>
+							</motion.div>
+						)}
 						<motion.div variants={itemVariants}>
 							<FormInput
 								label="Password"
