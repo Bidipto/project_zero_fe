@@ -58,3 +58,7 @@ input, button, textarea, select, .rounded, .rounded-lg, .rounded-xl, .rounded-2x
   border-radius: 1.25rem !important;
   margin: 0.15rem;
 }
+
+::-webkit-scrollbar { display: none; }
+              html { scrollbar-width: none; -ms-overflow-style: none; }
+              body { overflow-x: hidden; }
