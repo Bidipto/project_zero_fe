@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Variants } from "framer-motion";
+import EnvironmentVariables from '@/config/config';
 
 
 const ChatPage = () => {
@@ -77,7 +78,7 @@ const ChatPage = () => {
             
             // Simulate loading chat list
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000'}/v1/chatlist`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/chatlist`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -104,7 +105,7 @@ const ChatPage = () => {
             
             setIsLoading(true);
             try {
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:8000'}/v1/${activeChat}/messages`, {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/${activeChat}/messages`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
