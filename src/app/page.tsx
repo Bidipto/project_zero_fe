@@ -37,6 +37,7 @@ export default function HomePage() {
 					})
 				});
 				const data = await res.json();
+				if (res.status === 403) throw new Error('Invalid username or password');
 				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
 				setLoggedInUser(data.user);
 				if (data.token) {
@@ -54,6 +55,7 @@ export default function HomePage() {
 						"password": password
 					})
 				});
+				
 				const data = await res.json();
 				if (!res.ok) throw new Error(data?.error ?? 'Signup failed');
 				setSuccess('We are thriled to welcome you to Project Zero. Login to access your Project Zero chat!');
