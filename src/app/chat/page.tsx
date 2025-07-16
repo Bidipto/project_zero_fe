@@ -68,15 +68,18 @@ const ChatPage = () => {
         const fetchData = async () => {
             try {
                 await new Promise(resolve => setTimeout(resolve, 500));
-                setUser({ name: 'John Doe' });
+                setUser({ name: 'John Doe' }); // hardcoded
                 
                 // Fetch chat list
+        
                 const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/chatlist`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'accept': 'application/json'
+                        'accept': 'application/json',
+                        'Authorization': 'Bearer', authToken: sessionStorage.getItem('authToken') || '' 
                     }
+                    
                 });
                 if (!res.ok) throw new Error('Failed to fetch chat list');
                 const data = await res.json();
