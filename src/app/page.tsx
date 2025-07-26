@@ -68,8 +68,36 @@ export default function HomePage() {
 	}, [mode, email, password, name, router]);
 
 	const loginWithGoogle = useCallback(() => {
+<<<<<<< HEAD
 	}, []);
 
+=======
+		// TODO: Implement Google OAuth
+		console.log('Google OAuth not implemented yet');
+	}, []);
+
+	const loginWithGitHub = useCallback(() => {
+		// GitHub OAuth implementation
+		const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+		const redirectUri = process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI || `${EnvironmentVariables.BACKEND_URL}/login/github/callback`;
+		
+		if (!clientId) {
+			setError('GitHub OAuth is not configured. Please set NEXT_PUBLIC_GITHUB_CLIENT_ID environment variable.');
+			return;
+		}
+
+		// Generate and store state parameter for security
+		const state = generateOAuthState();
+		storeOAuthState(state);
+		
+		// Construct GitHub OAuth URL
+		const githubAuthUrl = getGitHubAuthUrl(clientId, redirectUri, state);
+		
+		// Redirect to GitHub
+		window.location.href = githubAuthUrl;
+	}, []);
+
+>>>>>>> parent of f243c7a (added login functionality)
 	if (checkingSession) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gray-900">
