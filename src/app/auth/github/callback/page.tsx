@@ -30,22 +30,22 @@ export default function GitHubCallback() {
 					return;
 				}
 
-				// const storedState = getStoredOAuthState();
-				// if (!validateOAuthState(state, storedState)) {
-				// 	setStatus('error');
-				// 	setMessage('Invalid state parameter. Possible CSRF attack.');
-				// 	return;
-				// }
+				const storedState = getStoredOAuthState();
+				if (!validateOAuthState(state, storedState)) {
+					setStatus('error');
+					setMessage('Invalid state parameter. Possible CSRF attack.');
+					return;
+				}
 				clearOAuthState();
-				const response = await fetch(`http://localhost:8000/v1/user/login/github`, {
-					method: 'GET',
+				const response = await fetch(`${EnvironmentVariables.BACKEND_URL}/login/github/callback`, {
+					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
 						code,
 						state,
-						redirect_uri:`${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`
+						redirect_uri: EnvironmentVariables.GITHUB_REDIRECT_URI || `${EnvironmentVariables.BACKEND_URL}/login/github/callback`
 					}),
 				});
 				const data = await response.json();
@@ -63,7 +63,7 @@ export default function GitHubCallback() {
 				setStatus('success');
 				setMessage('Successfully authenticated with GitHub! Redirecting...');
 				setTimeout(() => {
-					router.push('/http://127.0.0.1:3000/chat');
+					router.push('/chat');
 				}, 1500);
 
 			} catch (error: any) {

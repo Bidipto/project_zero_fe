@@ -9,8 +9,7 @@ import EnvironmentVariables from '@/config/config';
 const ChatPage = () => {
     const router = useRouter();
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const [user, setUser] = useState(null);
-    const [accesstoken, setAccestoken] = useState<string | null>(null);
+    const [user, setUser] = useState<{ name?: string } | null>(null);
     const [showNewChatModal, setShowNewChatModal] = useState(false);
     const [newChatName, setNewChatName] = useState("");
     const [activeChat, setActiveChat] = useState<string | null>(null);
@@ -69,7 +68,8 @@ const ChatPage = () => {
         const fetchData = async () => {
             try {
                 await new Promise(resolve => setTimeout(resolve, 500));
-                setUser({ name: 'name' });
+                setUser({ name: 'John Doe' });
+                
                 // Fetch chat list
                 const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/chatlist`, {
                     method: 'GET',
@@ -125,37 +125,11 @@ const ChatPage = () => {
         getMessages();
     }, [activeChat]);
 
-    useEffect(()=>{
-        // for greeting the logged in user and storing the name in local storage
-        
-        const displayAndStoreName = async () => {
-            try{
-                const params = new URLSearchParams(window.location.search);
-                const userName = params.get('username')
-                const accessToken = params.get('access_token');
-                if (userName && accessToken) {
-                    localStorage.setItem('username', userName);
-                    localStorage.setItem('access_token', accessToken);
-                } 
-                const storedUserName = localStorage.getItem('username');
-                const storeAccessToken = localStorage.getItem('access_token');
-                setUser(storedUserName);
-                setAccestoken(storeAccessToken);
-                displayAndStoreName()
-            }
-            catch (error) {
-                console.error("Error setting user name:", error);
-            }
-        }
-    })
-
-    const handleLogout = useCallback( () => {
+    const handleLogout = useCallback(async () => {
         try {
-            localStorage.removeItem('access_token');
-            console.log("User logged out successfully");
-            router.push('/');
+            await router.push('/');
         } catch (error) {
-            console.error("Failed to logout:", error);  
+            console.error("Failed to logout:", error);
         }
     }, [router]);
 
@@ -245,7 +219,7 @@ const ChatPage = () => {
                         Project Zero
                     </h1>
                     <p className="text-xs text-purple-300 font-medium">
-                        Hi, <span className="font-bold text-white">check</span>
+                        Hi, <span className="font-bold text-white">{user.name}</span>
                     </p>
                 </div>
                 
