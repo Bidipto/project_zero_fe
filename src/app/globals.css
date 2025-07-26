@@ -62,15 +62,3 @@ input, button, textarea, select, .rounded, .rounded-lg, .rounded-xl, .rounded-2x
 ::-webkit-scrollbar { display: none; }
               html { scrollbar-width: none; -ms-overflow-style: none; }
               body { overflow-x: hidden; }
-
-.btn-primary {
-  @apply bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-base shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50;
-}
-
-.btn-secondary {
-  @apply bg-gray-600 text-white font-bold text-base shadow-lg hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50;
-}
-
-.btn-outline {
-  @apply border-2 border-purple-600 text-purple-600 font-bold text-base hover:bg-purple-600 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50;
-}

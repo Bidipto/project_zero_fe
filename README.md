@@ -1,6 +1,6 @@
 # 💬 Project Zero Chat – Frontend
 
-**Project Zero FE** is the frontend of a modern chat application built using [Next.js 15](https://nextjs.org/), [React 18](https://reactjs.org/), and [TailwindCSS](https://tailwindcss.com/). It integrates with a custom backend API for authentication and backend functionality, and is styled and animated for a clean, responsive chat experience.
+**Project Zero FE** is the frontend of a modern chat application built using [Next.js 15](https://nextjs.org/), [React 18](https://reactjs.org/), and [TailwindCSS](https://tailwindcss.com/). It integrates with [Appwrite](https://appwrite.io/) for authentication and backend functionality, and is styled and animated for a clean, responsive chat experience.
 
 > ⚠️ This project is not run locally. It is deployed and consumed as a frontend service for the Project Zero chat application.
 
@@ -12,89 +12,46 @@
 - **Language:** TypeScript
 - **Styling:** TailwindCSS
 - **Animations:** Framer Motion
-- **Authentication:** Custom Backend API + OAuth (GitHub, Google)
+- **Authentication:** Appwrite
 - **Icons:** Lucide React
 - **Cookies Handling:** cookies-next
 - **Utilities:** clsx, tailwind-merge
 
 ---
 
-## 🔐 Authentication Features
-
-### Supported Authentication Methods:
-- **Email/Password**: Traditional username and password authentication
-- **GitHub OAuth**: OAuth 2.0 authentication with GitHub
-- **Google OAuth**: OAuth 2.0 authentication with Google (placeholder)
-
-### GitHub OAuth Setup
-For detailed instructions on setting up GitHub OAuth authentication, see the [GitHub OAuth Setup Guide](./GITHUB_OAUTH_SETUP.md).
-
-Quick setup:
-1. Create a GitHub OAuth App in your GitHub Developer Settings
-2. Configure environment variables (see `.env.example`)
-3. Implement the backend callback endpoint (`/v1/auth/github/callback`)
-4. Test the integration
-
----
-
 ## 📁 Project Structure (High-Level)
 
 ```
-project_zero_fe/
-├── app/                    # Next.js App Router
-│   ├── auth/              # OAuth callback routes
-│   │   └── github/
-│   │       └── callback/  # GitHub OAuth callback
-│   ├── chat/              # Chat application
-│   ├── components/        # UI Components
-│   └── page.tsx           # Main authentication page
-├── utils/                 # Helper functions
-│   └── githubAuth.ts      # GitHub OAuth utilities
-├── public/                # Static assets
-├── .env.example           # Environment variables template
-└── tsconfig.json          # TypeScript configuration
+
+project\_zero\_fe/
+├── app/ or pages/           # Routing
+├── components/              # UI Components (ChatBox, MessageList, etc.)
+├── styles/                  # Tailwind and global styles
+├── public/                  # Static assets
+├── utils/                   # Helper functions
+├── .env.local               # Environment variables (if used)
+└── tsconfig.json            # TypeScript configuration
+
 ```
 
 ---
 
-## 🚀 Getting Started
+## 🚀 Deployment
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- Backend API running (default: `http://127.0.0.1:8000`)
+This frontend is not **deployed**, and is intended for local development.
 
-### Installation
+If needed for debugging or extending:
 
 ```bash
-# Clone the repository
+# Optional: Clone the repo
 git clone https://github.com/Bidipto/project_zero_fe.git
 cd project_zero_fe
 
-# Install dependencies
+# Optional: Install dependencies
 npm install
 
-# Copy environment variables template
-cp .env.example .env.local
-
-# Configure your environment variables in .env.local
-# See GITHUB_OAUTH_SETUP.md for detailed instructions
-
-# Start development server
+# Optional: Start development server
 npm run dev
-```
-
-### Environment Variables
-
-Create a `.env.local` file with the following variables:
-
-```env
-# Backend URL
-BACKEND_URL=http://127.0.0.1:8000
-
-# GitHub OAuth (optional)
-NEXT_PUBLIC_GITHUB_CLIENT_ID=your_github_client_id_here
-NEXT_PUBLIC_GITHUB_REDIRECT_URI=http://localhost:3000/auth/github/callback
 ```
 
 ---
@@ -123,7 +80,7 @@ Want to contribute? Follow these steps:
 
 ---
 
-## 📆 Scripts
+## 📆 Scripts (If Used for Local Testing)
 
 | Command              | Description                 |
 | -------------------- | --------------------------- |
@@ -135,30 +92,13 @@ Want to contribute? Follow these steps:
 
 ---
 
-## 🔧 Backend API Requirements
-
-The frontend expects the following backend API endpoints:
-
-### Authentication Endpoints
-- `POST /v1/user/login` - Email/password login
-- `POST /v1/user/register` - User registration
-- `POST /v1/auth/github/callback` - GitHub OAuth callback
-
-### Chat Endpoints
-- `GET /v1/chatlist` - Get user's chat list
-- `GET /v1/{chatId}/messages` - Get messages for a specific chat
-
-See the [GitHub OAuth Setup Guide](./GITHUB_OAUTH_SETUP.md) for detailed API specifications.
-
----
-
 ## 📄 License
 
 Licensed under [MIT](LICENSE)
 
 ---
 
-## ✨ Maintainers
+## ✨ Maintainer
 
 - [@Bidipto](https://github.com/Bidipto)
 - [@Biswaraj](https://github.com/Biswarajace)
@@ -168,7 +108,4 @@ Licensed under [MIT](LICENSE)
 
 ## 📌 Notes
 
-- The application uses OAuth 2.0 for secure third-party authentication
-- All OAuth flows include CSRF protection via state parameters
-- JWT tokens are used for session management
-- The frontend is designed to work with a custom backend API
+- Will add as we go
