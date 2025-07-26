@@ -12,6 +12,7 @@ export default function HomePage() {
 	const [mode, setMode] = useState<'login' | 'signup'>('login');
 	const [name, setName] = useState('');
 	const [userName, setUserName] = useState('');
+	const [accesstoken, setAccesstoken] = useState('');
 	const [email, setEmail] = useState('');
 	const [password, setPassword] = useState('');
 	const [error, setError] = useState('');
@@ -70,31 +71,38 @@ export default function HomePage() {
 	}, [mode, email, password, name, router]);
 
 	const loginWithGoogle = useCallback(() => {
-		// TODO: Implement Google OAuth
 		console.log('Google OAuth not implemented yet');
 	}, []);
 
-	const loginWithGitHub = useCallback(() => {
-		// GitHub OAuth implementation
-		const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
-		const redirectUri = process.env.NEXT_PUBLIC_GITHUB_REDIRECT_URI || `${EnvironmentVariables.BACKEND_URL}/login/github/callback`;
+	const loginWithGitHub = useCallback( () => {
 		
-		if (!clientId) {
-			setError('GitHub OAuth is not configured. Please set NEXT_PUBLIC_GITHUB_CLIENT_ID environment variable.');
-			return;
+		
+        window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`;
+		if (userName) {	
+			localStorage.setItem('username', userName);
 		}
+		if (accessToken) {
+			localStorage.setItem('access_token', accessToken);
+		}
+        return;
+		const storedUserName = localStorage.getItem('username');
+		const storedAccessToken = localStorage.getItem('access_token');
+	
+		setUserName(storedUserName); 
+		setAccesstoken(storedAccessToken); 
+	
+		console.log("Access Token:", storedAccessToken);
+		console.log("Username:", storedUserName);
+	
+	}, [setUserName, setAccesstoken]); 
 
-		// Generate and store state parameter for security
-		const state = generateOAuthState();
-		storeOAuthState(state);
-		
-		// Construct GitHub OAuth URL
-		const githubAuthUrl = getGitHubAuthUrl(clientId, redirectUri, state);
-		
-		// Redirect to GitHub
-		window.location.href = githubAuthUrl;
-	}, []);
-
+	const params = new URLSearchParams(window.location.search);
+	const named = params.get('username');
+	localStorage.setItem('username', named || ''); // Store username in localStorage
+	const accessToken = params.get('access_token');
+	localStorage.setItem('access_token', accessToken || ''); // Store access token in localStorage
+	console.log("GitHub OAuth Params:", { named });
+	
 	if (checkingSession) {
 		return (
 			<div className="min-h-screen flex items-center justify-center bg-gray-900">
