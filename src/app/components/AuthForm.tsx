@@ -21,6 +21,7 @@ interface AuthFormProps {
 	error: string;
 	success: string;
 	loginWithGoogle: () => void;
+	loginWithGitHub: () => void;
 }
 
 const containerVariants: Variants = {
@@ -56,7 +57,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 	loading,
 	error,
 	success,
-	loginWithGoogle
+	loginWithGoogle,
+	loginWithGitHub
 }) => {
 	const formVariants: Variants = {
 		hidden: { opacity: 0, x: -30 },
@@ -194,8 +196,9 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 					<span className="mx-4 text-gray-400 text-sm">OR</span>
 					<div className="flex-grow h-px bg-gray-600" />
 				</motion.div>
-				<motion.div variants={itemVariants} className="flex flex-col gap-3">
+				<motion.div variants={itemVariants} className="space-y-3">
 					<OAuthButton provider="Google" onClick={loginWithGoogle} mode={mode} />
+					<OAuthButton provider="GitHub" onClick={loginWithGitHub} mode={mode} />
 				</motion.div>
 				<motion.p variants={itemVariants} className="text-xs text-gray-400 text-center mt-4">
 					By proceeding, you agree to our{' '}
@@ -205,3 +208,4 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 		</div>
 	);
 }; 
+
