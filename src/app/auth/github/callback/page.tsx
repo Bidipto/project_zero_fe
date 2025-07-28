@@ -37,15 +37,15 @@ export default function GitHubCallback() {
 					return;
 				}
 				clearOAuthState();
-				const response = await fetch(`${EnvironmentVariables.BACKEND_URL}/login/github/callback`, {
-					method: 'POST',
+				const response = await fetch(`${EnvironmentVariables.BACKEND_URL}v1/user/login/github`, {
+					method: 'GET',
 					headers: {
 						'Content-Type': 'application/json',
 					},
 					body: JSON.stringify({
 						code,
 						state,
-						redirect_uri: EnvironmentVariables.GITHUB_REDIRECT_URI || `${EnvironmentVariables.BACKEND_URL}/login/github/callback`
+						redirect_uri: `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`
 					}),
 				});
 				const data = await response.json();
@@ -53,18 +53,13 @@ export default function GitHubCallback() {
 				if (!response.ok) {
 					throw new Error(data.error || 'Failed to authenticate with GitHub');
 				}
-				if (data.token) {
-					localStorage.setItem('jwt', data.token);
-				}
-				if (data.user) {
-					localStorage.setItem('user', JSON.stringify(data.user));
-				}
-
+				// if (data.token) {
+				// 	localStorage.setItem('jwt', data.token);
+				// }
+				
 				setStatus('success');
 				setMessage('Successfully authenticated with GitHub! Redirecting...');
-				setTimeout(() => {
-					router.push('/chat');
-				}, 1500);
+				
 
 			} catch (error: any) {
 				console.error('GitHub OAuth callback error:', error);
