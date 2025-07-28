@@ -31,6 +31,7 @@ export default function HomePage() {
 		setLoading(true);
 		try {
 			if (mode === 'login') {
+				
 				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/login`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
@@ -40,13 +41,17 @@ export default function HomePage() {
 					})
 				});
 				const data = await res.json();
+				
 				if (res.status === 403) throw new Error('Invalid username or password');
+				
 				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
 				setLoggedInUser(data.user);
-				if (data.token) {
-					localStorage.setItem('jwt', data.token);
+				const authToken = data.access_token;
+				if (authToken) {
+					// localStorage.setItem('jwt', data.access_token);
+                	sessionStorage.setItem('authToken', authToken)
 				}
-				
+				router.push('/chat');
 			} else {
 				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
 					method: 'POST',
