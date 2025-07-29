@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import EnvironmentVariables from "@/config/config";
-import { getStoredOAuthState, clearOAuthState, validateOAuthState } from "@/utils/githubAuth";
 
 export default function GitHubCallback() {
 	const router = useRouter();
@@ -29,14 +28,6 @@ export default function GitHubCallback() {
 					setMessage('Missing required OAuth parameters');
 					return;
 				}
-
-				const storedState = getStoredOAuthState();
-				if (!validateOAuthState(state, storedState)) {
-					setStatus('error');
-					setMessage('Invalid state parameter. Possible CSRF attack.');
-					return;
-				}
-				clearOAuthState();
 				const response = await fetch(`${EnvironmentVariables.BACKEND_URL}v1/user/login/github`, {
 					method: 'GET',
 					headers: {
@@ -53,13 +44,7 @@ export default function GitHubCallback() {
 				if (!response.ok) {
 					throw new Error(data.error || 'Failed to authenticate with GitHub');
 				}
-				// if (data.token) {
-				// 	localStorage.setItem('jwt', data.token);
-				// }
-				
-				setStatus('success');
-				setMessage('Successfully authenticated with GitHub! Redirecting...');
-				
+
 
 			} catch (error: any) {
 				console.error('GitHub OAuth callback error:', error);

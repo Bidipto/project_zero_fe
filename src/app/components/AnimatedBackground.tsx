@@ -15,15 +15,15 @@ interface AnimatedBackgroundProps {
 // --- THE COMPONENT ---
 export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
   className,
-  mainColor = "#4c1d95",      // Default: purple-700
+  mainColor = "#4c1d95",         // Default: purple-700
   highlightColor = "#a78bfa", // Default: purple-400
   fontSize = 18,
   speed = 1,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  // Storing the animation frame ID in a ref allows us to access it in the cleanup function.
-  const animationFrameId = useRef<number>();
+  const animationFrameId = useRef<number | null>(null);
+  // CORRECTED: Move resizeTimeoutRef outside of useEffect
+  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -39,7 +39,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
       height: 0,
       columns: 0,
       // The iconic Katakana character set from The Matrix, plus some numbers and symbols.
-      characters: "NIGGANIGGANIGGA",
+      characters: "QWERTYUIOPSDFGHJKLXCV",
     };
 
     // --- PARTICLE CLASS ---
@@ -62,12 +62,12 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         // The lead character is brighter (highlightColor)
         context.fillStyle = highlightColor;
         context.fillText(this.char, this.x, this.y);
-        
+
         // The rest of the trail is the main color.
         context.fillStyle = mainColor;
         context.fillText(this.char, this.x, this.y - fontSize); // Draw one step behind
       }
-      
+
       // The update method handles the particle's movement and resets it when it goes off-screen.
       update() {
         this.y += this.speed;
@@ -78,7 +78,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         }
       }
     }
-    
+
     let particles: Particle[] = [];
 
     // --- INITIALIZATION ---
@@ -88,7 +88,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
       const dpr = window.devicePixelRatio || 1;
       config.width = window.innerWidth;
       config.height = window.innerHeight;
-      
+
       canvas.width = config.width * dpr;
       canvas.height = config.height * dpr;
       ctx.scale(dpr, dpr);
@@ -98,7 +98,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
 
       config.columns = Math.floor(config.width / fontSize);
       particles = [];
-      
+
       for (let i = 0; i < config.columns; i++) {
         const x = i * fontSize;
         const y = Math.random() * config.height;
@@ -106,7 +106,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
         particles.push(new Particle(x, y, particleSpeed));
       }
     };
-    
+
     // --- ANIMATION LOOP ---
     // We use requestAnimationFrame for smoother, more efficient animations.
     const animate = () => {
@@ -132,21 +132,24 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
     animate();
 
     const handleResize = () => {
-        // A simple debounce to prevent the init function from firing too rapidly on resize.
-        let timeoutId: NodeJS.Timeout;
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
-            init();
-        }, 150);
+      // A simple debounce to prevent the init function from firing too rapidly on resize.
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(() => {
+        init();
+      }, 150);
     };
-    
+
     window.addEventListener('resize', handleResize);
 
-    // --- CLEANUP ---
-    // This function runs when the component unmounts. It's crucial for preventing memory leaks.
     return () => {
+      // Cleanup function: This runs when the component unmounts or dependencies change.
       if (animationFrameId.current) {
         cancelAnimationFrame(animationFrameId.current);
+      }
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
       }
       window.removeEventListener('resize', handleResize);
     };

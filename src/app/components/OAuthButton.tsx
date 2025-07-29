@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 // The `mode` prop is no longer needed for the button's text.
 interface OAuthButtonProps {
     provider: "Google" | "GitHub";
-	mode: "login" | "signup"; 
     onClick: () => void;
 }
 

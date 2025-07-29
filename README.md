@@ -75,7 +75,7 @@ cd project_zero_fe
 npm install
 
 # Copy environment variables template
-cp .env.example .env.local
+cp .env.local
 
 # Configure your environment variables in .env.local
 # See GITHUB_OAUTH_SETUP.md for detailed instructions

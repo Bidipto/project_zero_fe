@@ -127,9 +127,10 @@ const ChatPage = () => {
 
     const handleLogout = useCallback(async () => {
         try {
-            router.push('/');
+            
             localStorage.removeItem('username');
             localStorage.removeItem('access_token');
+            router.push('/');
         } catch (error) {
             console.error("Failed to logout:", error);
         }

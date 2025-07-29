@@ -197,8 +197,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({
 					<div className="flex-grow h-px bg-gray-600" />
 				</motion.div>
 				<motion.div variants={itemVariants} className="space-y-3">
-					<OAuthButton provider="Google" onClick={loginWithGoogle} mode={mode} />
-					<OAuthButton provider="GitHub" onClick={loginWithGitHub} mode={mode} />
+					<OAuthButton provider="Google" onClick={loginWithGoogle}  />
+					<OAuthButton provider="GitHub" onClick={loginWithGitHub}  />
 				</motion.div>
 				<motion.p variants={itemVariants} className="text-xs text-gray-400 text-center mt-4">
 					By proceeding, you agree to our{' '}
