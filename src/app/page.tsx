@@ -113,11 +113,64 @@ export default function HomePage() {
     }
   }, [mode, email, password, name, userName, isClient]);
 
+
   // Placeholders for OAuth functionality
   const loginWithGoogle = useCallback(() => {
     // TODO: Implement Google OAuth
     console.log('Google OAuth not implemented yet');
   }, []);
+
+	const handleSubmit = useCallback(async (e: React.FormEvent) => {
+		e.preventDefault();
+		setError('');
+		setSuccess('');
+		setLoading(true);
+		try {
+			if (mode === 'login') {
+				
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+					"username": userName,
+					"password": password
+					})
+				});
+				const data = await res.json();
+				
+				if (res.status === 403) throw new Error('Invalid username or password');
+				
+				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
+				setLoggedInUser(data.user);
+				const authToken = data.access_token;
+				if (authToken) {
+					// localStorage.setItem('jwt', data.access_token);
+                	sessionStorage.setItem('authToken', authToken)
+				}
+
+				router.push('/chat');
+			} else {
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+						"email": email,
+						"username": userName,
+						"full_name": name,
+						"password": password
+					})
+				});
+				
+				const data = await res.json();
+				if (!res.ok) throw new Error(data?.error ?? 'Signup failed');
+				setSuccess('We are thriled to welcome you to Project Zero. Login to access your Project Zero chat!');
+			}
+		} catch (err: any) {
+			setError(err.message ?? 'Something went wrong.');
+		} finally {
+			setLoading(false);
+		}
+	}, [mode, email, password, name, router]);
 
   const loginWithGitHub = useCallback(() => {
     if (!isClient) return;
