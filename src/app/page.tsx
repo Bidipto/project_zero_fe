@@ -34,11 +34,11 @@ export default function HomePage() {
     const named = params.get('username');
     const accessToken = params.get('access_token');
 
-    if (named) {
+    if (named && named.trim()) {
       setUserName(named);
       localStorage.setItem('username', named);
     }
-    if (accessToken) {
+    if (accessToken && accessToken.trim()) {
       setAccesstoken(accessToken);
       localStorage.setItem('access_token', accessToken);
     }

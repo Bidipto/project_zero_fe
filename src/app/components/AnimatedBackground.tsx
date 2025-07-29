@@ -22,8 +22,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationFrameId = useRef<number | null>(null);
-  // CORRECTED: Move resizeTimeoutRef outside of useEffect
-  const resizeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resizeTimeoutRef = useRef<number | null>(null);;
 
   useEffect(() => {
     const canvas = canvasRef.current;
