@@ -2,62 +2,157 @@
 
 import React, { useRef, useEffect } from 'react';
 
-export const AnimatedBackground = () => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+// --- PROPS INTERFACE ---
+// We define the types for the component's props for better type-checking and autocompletion.
+interface AnimatedBackgroundProps {
+  className?: string;
+  mainColor?: string;
+  highlightColor?: string;
+  fontSize?: number;
+  speed?: number; // Value from 0.1 (slow) to 2 (fast)
+}
 
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
+// --- THE COMPONENT ---
+export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
+  className,
+  mainColor = "#4c1d95",         // Default: purple-700
+  highlightColor = "#a78bfa", // Default: purple-400
+  fontSize = 18,
+  speed = 1,
+}) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const animationFrameId = useRef<number | null>(null);
+  const resizeTimeoutRef = useRef<number | null>(null);;
 
-        let width = canvas.width = window.innerWidth;
-        let height = canvas.height = window.innerHeight;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-        let columns = Math.floor(width / 20);
-        const drops: number[] = [];
-        for (let x = 0; x < columns; x++) {
-            drops[x] = 1;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // --- STATE & CONFIGURATION ---
+    // Using an object to hold state makes it cleaner to manage.
+    const config = {
+      width: 0,
+      height: 0,
+      columns: 0,
+      // The iconic Katakana character set from The Matrix, plus some numbers and symbols.
+      characters: "QWERTYUIOPSDFGHJKLXCV",
+    };
+
+    // --- PARTICLE CLASS ---
+    // We use a class to represent each falling character "drop". This encapsulates its logic nicely.
+    class Particle {
+      x: number;
+      y: number;
+      speed: number;
+      char: string;
+
+      constructor(x: number, y: number, speed: number) {
+        this.x = x;
+        this.y = y;
+        this.speed = speed;
+        this.char = config.characters.charAt(Math.floor(Math.random() * config.characters.length));
+      }
+
+      // The draw method is responsible for drawing the particle on the canvas.
+      draw(context: CanvasRenderingContext2D) {
+        // The lead character is brighter (highlightColor)
+        context.fillStyle = highlightColor;
+        context.fillText(this.char, this.x, this.y);
+
+        // The rest of the trail is the main color.
+        context.fillStyle = mainColor;
+        context.fillText(this.char, this.x, this.y - fontSize); // Draw one step behind
+      }
+
+      // The update method handles the particle's movement and resets it when it goes off-screen.
+      update() {
+        this.y += this.speed;
+        if (this.y > config.height + fontSize) {
+          this.y = Math.random() * config.height / 4; // Reset near the top with some randomness
+          this.speed = (Math.random() * 0.5 + 0.5) * speed * fontSize * 0.15; // Randomize speed
+          this.char = config.characters.charAt(Math.floor(Math.random() * config.characters.length));
         }
+      }
+    }
 
-        const characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        
-        const draw = () => {
-            ctx.fillStyle = "rgba(17, 24, 39, 0.05)";
-            ctx.fillRect(0, 0, width, height);
+    let particles: Particle[] = [];
 
-            ctx.fillStyle = "#4c1d95"; // purple-700
-            ctx.font = "15px monospace";
+    // --- INITIALIZATION ---
+    // The init function sets up the canvas and creates the particles. It's called on load and on resize.
+    const init = () => {
+      // Handle high-DPI screens for a crisp render
+      const dpr = window.devicePixelRatio || 1;
+      config.width = window.innerWidth;
+      config.height = window.innerHeight;
 
-            for (let i = 0; i < drops.length; i++) {
-                const text = characters.charAt(Math.floor(Math.random() * characters.length));
-                ctx.fillText(text, i * 20, drops[i] * 20);
+      canvas.width = config.width * dpr;
+      canvas.height = config.height * dpr;
+      ctx.scale(dpr, dpr);
 
-                if (drops[i] * 20 > height && Math.random() > 0.975) {
-                    drops[i] = 0;
-                }
-                drops[i]++;
-            }
-        };
+      canvas.style.width = `${config.width}px`;
+      canvas.style.height = `${config.height}px`;
 
-        const interval = setInterval(draw, 33);
-        
-        const handleResize = () => {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            columns = Math.floor(width / 20);
-            for (let x = 0; x < columns; x++) {
-                drops[x] = 1;
-            }
-        }
-        
-        window.addEventListener('resize', handleResize);
+      config.columns = Math.floor(config.width / fontSize);
+      particles = [];
 
-        return () => {
-            clearInterval(interval);
-            window.removeEventListener('resize', handleResize);
-        }
-    }, []);
+      for (let i = 0; i < config.columns; i++) {
+        const x = i * fontSize;
+        const y = Math.random() * config.height;
+        const particleSpeed = (Math.random() * 0.5 + 0.5) * speed * fontSize * 0.15;
+        particles.push(new Particle(x, y, particleSpeed));
+      }
+    };
 
-    return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full z-0" />;
-}; 
+    // --- ANIMATION LOOP ---
+    // We use requestAnimationFrame for smoother, more efficient animations.
+    const animate = () => {
+      // 1. Draw a semi-transparent rectangle over the whole canvas to create the fading trail effect.
+      ctx.fillStyle = "rgba(17, 24, 39, 0.1)"; // bg-gray-900 with alpha
+      ctx.fillRect(0, 0, config.width, config.height);
+
+      // 2. Set the font for the characters.
+      ctx.font = `bold ${fontSize}px monospace`;
+
+      // 3. Update and draw each particle.
+      particles.forEach(p => {
+        p.update();
+        p.draw(ctx);
+      });
+
+      // 4. Request the next frame.
+      animationFrameId.current = requestAnimationFrame(animate);
+    };
+
+    // --- START & EVENT LISTENERS ---
+    init();
+    animate();
+
+    const handleResize = () => {
+      // A simple debounce to prevent the init function from firing too rapidly on resize.
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = setTimeout(() => {
+        init();
+      }, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      // Cleanup function: This runs when the component unmounts or dependencies change.
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [mainColor, highlightColor, fontSize, speed]); // Re-run effect if props change
+
+  return <canvas ref={canvasRef} className={`absolute top-0 left-0 w-full h-full z-0 ${className || ''}`} />;
+};
