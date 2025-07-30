@@ -19,14 +19,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [checkingSession, setCheckingSession] = useState(true);
   const [isClient, setIsClient] = useState(false);
-
-  // Ensure we're on the client side
   useEffect(() => {
     setIsClient(true);
     setCheckingSession(false);
   }, []);
 
-  // Handle OAuth parameters
   useEffect(() => {
     if (!isClient) return;
 
@@ -50,144 +47,79 @@ export default function HomePage() {
     }
   }, [isClient]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
-    setLoading(true);
-    
-    try {
-      if (mode === 'login') {
-        const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/login`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'accept': 'application/json' 
-          },
-          body: JSON.stringify({
-            username: userName,
-            password: password
-          })
-        });
-        
-        const data = await res.json();
-        
-        if (res.status === 403) {
-          throw new Error('Invalid username or password');
-        }
-        if (!res.ok) {
-          throw new Error(data?.error ?? 'Login failed');
-        }
-        
-        setLoggedInUser(data.user);
-        if (data.token && isClient) {
-          localStorage.setItem('jwt', data.token);
-        }
-      } else {
-        const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
-          method: 'POST',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'accept': 'application/json' 
-          },
-          body: JSON.stringify({
-            email: email,
-            username: userName,
-            full_name: name,
-            password: password
-          })
-        });
-        
-        const data = await res.json();
-        
-        if (!res.ok) {
-          throw new Error(data?.error ?? 'Signup failed');
-        }
-        
-        setSuccess('We are thrilled to welcome you to Project Zero. Login to access your Project Zero chat!');
-      }
-    } catch (err: any) {
-      setError(err.message ?? 'Something went wrong.');
-    } finally {
-      setLoading(false);
-    }
-  }, [mode, email, password, name, userName, isClient]);
-
-
-  // Placeholders for OAuth functionality
   const loginWithGoogle = useCallback(() => {
-    // TODO: Implement Google OAuth
+    window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/google`;
+	localStorage.setItem('username', userName);
+	localStorage.setItem('access_token', accesstoken);
+	router.push('/chat');
     console.log('Google OAuth not implemented yet');
   }, []);
 
-	// const handleSubmit = useCallback(async (e: React.FormEvent) => {
-	// 	e.preventDefault();
-	// 	setError('');
-	// 	setSuccess('');
-	// 	setLoading(true);
-	// 	try {
-	// 		if (mode === 'login') {
+	const handleSubmit = useCallback(async (e: React.FormEvent) => {
+		e.preventDefault();
+		setError('');
+		setSuccess('');
+		setLoading(true);
+		try {
+			if (mode === 'login') {
 				
-	// 			const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/login`, {
-	// 				method: 'POST',
-	// 				headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
-	// 				body: JSON.stringify({
-	// 				"username": userName,
-	// 				"password": password
-	// 				})
-	// 			});
-	// 			const data = await res.json();
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/login`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+					"username": userName,
+					"password": password
+					})
+				});
+				const data = await res.json();
 				
-	// 			if (res.status === 403) throw new Error('Invalid username or password');
+				if (res.status === 403) throw new Error('Invalid username or password');
 				
-	// 			if (!res.ok) throw new Error(data?.error ?? 'Login failed');
-	// 			setLoggedInUser(data.user);
-	// 			const authToken = data.access_token;
-	// 			if (authToken) {
-	// 				// localStorage.setItem('jwt', data.access_token);
-  //               	sessionStorage.setItem('authToken', authToken)
-	// 			}
+				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
+				setLoggedInUser(data.user);
+				const authToken = data.access_token;
+				if (authToken) {
+					// localStorage.setItem('jwt', data.access_token);
+                	sessionStorage.setItem('authToken', authToken)
+				}
 
-	// 			router.push('/chat');
-	// 		} else {
-	// 			const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
-	// 				method: 'POST',
-	// 				headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
-	// 				body: JSON.stringify({
-	// 					"email": email,
-	// 					"username": userName,
-	// 					"full_name": name,
-	// 					"password": password
-	// 				})
-	// 			});
+				router.push('/chat');
+			} else {
+				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json', 'accept': 'application/json' },
+					body: JSON.stringify({
+						"email": email,
+						"username": userName,
+						"full_name": name,
+						"password": password
+					})
+				});
 				
-	// 			const data = await res.json();
-	// 			if (!res.ok) throw new Error(data?.error ?? 'Signup failed');
-	// 			setSuccess('We are thriled to welcome you to Project Zero. Login to access your Project Zero chat!');
-	// 		}
-	// 	} catch (err: any) {
-	// 		setError(err.message ?? 'Something went wrong.');
-	// 	} finally {
-	// 		setLoading(false);
-	// 	}
-	// }, [mode, email, password, name, router]);
+				const data = await res.json();
+				if (!res.ok) throw new Error(data?.error ?? 'Signup failed');
+				setSuccess('We are thriled to welcome you to Project Zero. Login to access your Project Zero chat!');
+			}
+		} catch (err: any) {
+			setError(err.message ?? 'Something went wrong.');
+		} finally {
+			setLoading(false);
+		}
+	}, [mode, email, password, name, router]);
 
   const loginWithGitHub = useCallback(() => {
+	window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`;
     if (!isClient) return;
     
-    // Store current values before redirect
     if (userName) {
       localStorage.setItem('username', userName);
     }
     if (accesstoken) {
       localStorage.setItem('access_token', accesstoken);
     }
-    
-    // Redirect to your backend's GitHub OAuth endpoint
-    window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`;
+        
   }, [userName, accesstoken, isClient]);
 
-  // Show loading state during SSR/hydration
   if (!isClient || checkingSession) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
