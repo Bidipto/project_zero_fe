@@ -76,7 +76,7 @@ const ChatPage = () => {
                     headers: {
                         'Content-Type': 'application/json',
                         'accept': 'application/json',
-                        'Authorization': 'Bearer', access_token: localStorage.getItem('access_token') || '' 
+                        'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}` 
                     }
                     
                 });
@@ -129,7 +129,8 @@ const ChatPage = () => {
 
     const handleLogout = useCallback(async () => {
         try {
-            localStorage.clear();
+            localStorage.removeItem('username');
+            localStorage.removeItem('access_token');    
             router.push('/');
         } catch (error) {
             console.error("Failed to logout:", error);

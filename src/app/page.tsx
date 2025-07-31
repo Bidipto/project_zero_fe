@@ -43,7 +43,7 @@ export default function HomePage() {
     if (named || accessToken) {
       router.push('/chat');
     }
-  }, [isClient]);
+  }, [isClient]);   
 
   const loginWithGoogle = useCallback(() => {
     window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/google`;
@@ -71,10 +71,10 @@ export default function HomePage() {
 				
 				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
 				router.push('/chat');
-				const access_token = data.access_token;
-				if (access_token) {
-                	localStorage.setItem('access_token', access_token)
-				}
+          const access_token = data.access_token;
+          if (access_token) {
+                  	localStorage.setItem('access_token', access_token)
+          }
         if (userName) {
           localStorage.setItem('username', userName)
 }
@@ -104,17 +104,8 @@ export default function HomePage() {
 	}, [mode, email, password, name, router]);
 
   const loginWithGitHub = useCallback(() => {
-	window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`;
-    if (!isClient) return;
-    
-    if (userName) {
-      localStorage.setItem('username', userName);
-    }
-    if (accesstoken) {
-      localStorage.setItem('access_token', accesstoken);
-    }
-        
-  }, [userName, accesstoken, isClient]);
+	window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`; 
+  }, []);
 
   if (!isClient || checkingSession) {
     return (
