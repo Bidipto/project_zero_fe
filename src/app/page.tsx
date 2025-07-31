@@ -41,18 +41,12 @@ export default function HomePage() {
     }
 
     if (named || accessToken) {
-      console.log("GitHub OAuth Params:", { named, accessToken });
-      // Optionally redirect after OAuth:
-      // router.push('/chat');
+      router.push('/chat');
     }
-  }, [isClient]);
+  }, [isClient]);   
 
   const loginWithGoogle = useCallback(() => {
     window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/google`;
-	localStorage.setItem('username', userName);
-	localStorage.setItem('access_token', accesstoken);
-	router.push('/chat');
-    console.log('Google OAuth not implemented yet');
   }, []);
 
 	const handleSubmit = useCallback(async (e: React.FormEvent) => {
@@ -76,14 +70,16 @@ export default function HomePage() {
 				if (res.status === 403) throw new Error('Invalid username or password');
 				
 				if (!res.ok) throw new Error(data?.error ?? 'Login failed');
-				setLoggedInUser(data.user);
-				const authToken = data.access_token;
-				if (authToken) {
-					// localStorage.setItem('jwt', data.access_token);
-                	sessionStorage.setItem('authToken', authToken)
-				}
-
 				router.push('/chat');
+          const access_token = data.access_token;
+          if (access_token) {
+                  	localStorage.setItem('access_token', access_token)
+          }
+        if (userName) {
+          localStorage.setItem('username', userName)
+}
+
+				
 			} else {
 				const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/register`, {
 					method: 'POST',
@@ -108,17 +104,8 @@ export default function HomePage() {
 	}, [mode, email, password, name, router]);
 
   const loginWithGitHub = useCallback(() => {
-	window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`;
-    if (!isClient) return;
-    
-    if (userName) {
-      localStorage.setItem('username', userName);
-    }
-    if (accesstoken) {
-      localStorage.setItem('access_token', accesstoken);
-    }
-        
-  }, [userName, accesstoken, isClient]);
+	window.location.href = `${EnvironmentVariables.BACKEND_URL}/v1/user/login/github`; 
+  }, []);
 
   if (!isClient || checkingSession) {
     return (

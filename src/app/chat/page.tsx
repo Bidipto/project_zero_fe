@@ -68,16 +68,15 @@ const ChatPage = () => {
         const fetchData = async () => {
             try {
                 await new Promise(resolve => setTimeout(resolve, 500));
-                setUser({ name: 'John Doe' }); // hardcoded
-                
-                // Fetch chat list
-        
+                const nameofuser = localStorage.getItem('username') || 'Guest User';
+                console.log(nameofuser)
+                setUser({ name: nameofuser });         
                 const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/chatlist`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
                         'accept': 'application/json',
-                        'Authorization': 'Bearer', authToken: sessionStorage.getItem('authToken') || '' 
+                        'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}` 
                     }
                     
                 });
@@ -130,9 +129,8 @@ const ChatPage = () => {
 
     const handleLogout = useCallback(async () => {
         try {
-            
             localStorage.removeItem('username');
-            localStorage.removeItem('access_token');
+            localStorage.removeItem('access_token');    
             router.push('/');
         } catch (error) {
             console.error("Failed to logout:", error);
