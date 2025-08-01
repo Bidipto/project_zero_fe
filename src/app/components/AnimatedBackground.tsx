@@ -277,10 +277,33 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
     disableRotation,
   ]);
 
-  return (
-    <div
-      ref={containerRef}
-      className={`absolute inset-0 w-full h-full pointer-events-none ${className}`}
-    />
-  );
+    // --- START & EVENT LISTENERS ---
+    init();
+    animate();
+
+    const handleResize = () => {
+      // A simple debounce to prevent the init function from firing too rapidly on resize.
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      resizeTimeoutRef.current = window.setTimeout(() => {
+        init();
+      }, 150);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      // Cleanup function: This runs when the component unmounts or dependencies change.
+      if (animationFrameId.current) {
+        cancelAnimationFrame(animationFrameId.current);
+      }
+      if (resizeTimeoutRef.current) {
+        clearTimeout(resizeTimeoutRef.current);
+      }
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [mainColor, highlightColor, fontSize, speed]); // Re-run effect if props change
+
+  return <canvas ref={canvasRef} className={`absolute top-0 left-0 w-full h-full z-0 ${className || ''}`} />;
 };
