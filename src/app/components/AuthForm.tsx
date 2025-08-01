@@ -117,6 +117,8 @@ const EnhancedFormInput: React.FC<EnhancedFormInputProps> = ({
                     <motion.button
                         type="button"
                         onClick={togglePassword}
+						aria-label={showPassword ? "Hide password" : "Show password"}
+						aria-pressed={showPassword}
                         onHoverStart={() => setIsHovered(true)}
                         onHoverEnd={() => setIsHovered(false)}
                         variants={eyeVariants}
@@ -124,7 +126,7 @@ const EnhancedFormInput: React.FC<EnhancedFormInputProps> = ({
                         animate="visible"
                         whileHover="hover"
                         whileTap="tap"
-                        className="absolute right-3 top-1/4 transform -translate-y-1/2 text-gray-400 hover:text-purple-400 focus:outline-none focus:text-purple-400 transition-colors duration-200"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-400 focus:outline-none focus:text-purple-400 transition-colors duration-200"
                     >
                         <motion.div
                             animate={{
