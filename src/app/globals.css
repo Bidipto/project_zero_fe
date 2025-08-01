@@ -64,13 +64,39 @@ input, button, textarea, select, .rounded, .rounded-lg, .rounded-xl, .rounded-2x
               body { overflow-x: hidden; }
 
 .btn-primary {
-  @apply bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-base shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50;
+  @apply relative overflow-hidden bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 text-white font-semibold text-base px-6 py-3 rounded-2xl shadow-[0_8px_32px_rgba(139,92,246,0.3)] hover:shadow-[0_12px_40px_rgba(139,92,246,0.4)] hover:scale-105 transition-all duration-300 ease-out focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none;
+  background-size: 200% 200%;
+  animation: gradientShift 3s ease infinite;
 }
 
-.btn-secondary {
-  @apply bg-gray-600 text-white font-bold text-base shadow-lg hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 disabled:opacity-50;
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
 }
 
-.btn-outline {
-  @apply border-2 border-purple-600 text-purple-600 font-bold text-base hover:bg-purple-600 hover:text-white transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-50;
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+/* Gradient animation */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Pulse animation for special buttons */
+.btn-pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }

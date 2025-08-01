@@ -38,7 +38,7 @@ export const OAuthButton: React.FC<OAuthButtonProps> = ({ provider, onClick }) =
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
-            className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-md btn-outline"
+            className="flex items-center justify-center gap-3 w-full py-2.5 px-4 rounded-md btn-primary"
         >
             {icon}
             <span>Continue with {text}</span>
