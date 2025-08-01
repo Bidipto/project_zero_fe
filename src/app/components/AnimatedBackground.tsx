@@ -135,7 +135,7 @@ export const AnimatedBackground: React.FC<AnimatedBackgroundProps> = ({
       if (resizeTimeoutRef.current) {
         clearTimeout(resizeTimeoutRef.current);
       }
-      resizeTimeoutRef.current = setTimeout(() => {
+      resizeTimeoutRef.current = window.setTimeout(() => {
         init();
       }, 150);
     };
