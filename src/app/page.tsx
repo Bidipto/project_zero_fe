@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AuthForm } from "./components/AuthForm";
+import {AuthForm} from "./components/AuthForm";
 import { AnimatedBackground } from "./components/AnimatedBackground";
 import EnvironmentVariables from "@/config/config";
 
