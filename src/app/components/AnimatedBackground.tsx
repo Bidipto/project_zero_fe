@@ -36,8 +36,8 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
   const mouseRef = useRef({ x: 0, y: 0 });
   const smoothMouseRef = useRef({ x: 0, y: 0 });
   const animationFrameId = useRef<number | null>(null);
-  const rendererRef = useRef<any>(null); // Use any for simplicity
-  const particlesRef = useRef<any>(null); // Use any for simplicity
+  const rendererRef = useRef<{ render: (options: { scene: any; camera: any }) => void; setSize: (width: number, height: number) => void; gl: any } | null>(null);
+  const particlesRef = useRef<{ position: { x: number; y: number }; rotation: { x: number; y: number; z: number } } | null>(null);
   const lastTimeRef = useRef<number>(0);
   const elapsedRef = useRef<number>(0);
 

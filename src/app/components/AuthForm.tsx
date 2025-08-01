@@ -126,11 +126,10 @@ const EnhancedFormInput: React.FC<EnhancedFormInputProps> = ({
                         animate="visible"
                         whileHover="hover"
                         whileTap="tap"
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-purple-400 focus:outline-none focus:text-purple-400 transition-colors duration-200"
+                        className="absolute right-3 top-1/4 transform -translate-y-1/2 text-gray-400 hover:text-purple-400 focus:outline-none focus:text-purple-400 transition-colors duration-200"
                     >
                         <motion.div
                             animate={{
-                                rotate: showPassword ? 0 : 0,
                                 scale: isHovered ? 1.1 : 1
                             }}
                             transition={{ duration: 0.2 }}
@@ -369,7 +368,8 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                 </motion.div>
                 <motion.p variants={itemVariants} className="text-xs text-gray-400 text-center mt-4">
                     By proceeding, you agree to our{' '}
-                    <a href="#" className="font-semibold underline hover:text-purple-300 transition-colors">nefarious data stealing policies</a>.
+                    <a href="/terms" className="font-semibold underline hover:text-purple-300 transition-colors">Terms of Service</a>
+
                 </motion.p>
             </motion.section>
         </div>
