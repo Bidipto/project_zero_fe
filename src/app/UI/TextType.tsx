@@ -2,8 +2,29 @@
 
 import { useEffect, useRef, useState, createElement } from "react";
 import { gsap } from "gsap";
+interface TextTypeProps {
+  text: string | string[];
+  as?: React.ElementType;
+  typingSpeed?: number;
+  initialDelay?: number;
+  pauseDuration?: number;
+  deletingSpeed?: number;
+  loop?: boolean;
+  className?: string;
+  showCursor?: boolean;
+  hideCursorWhileTyping?: boolean;
+  cursorCharacter?: string;
+  cursorClassName?: string;
+  cursorBlinkDuration?: number;
+  textColors?: string[];
+  variableSpeed?: { min: number; max: number };
+  onSentenceComplete?: (text: string, index: number) => void;
+  startOnVisible?: boolean;
+  reverseMode?: boolean;
+  [key: string]: any; // For additional props
+}
 
-const TextType = ({
+const TextType: React.FC<TextTypeProps> = ({
   text,
   as: Component = "div",
   typingSpeed = 50,

@@ -111,9 +111,6 @@ const ChatPage = () => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
-                
-                // Simulate fetching current user
-                localStorage.setItem('username', 'John Doe'); // For testing purposes
                 const username = localStorage.getItem('username');
                 setCurrentUser({ 
                     name: username,
@@ -131,21 +128,6 @@ const ChatPage = () => {
 
                 setUsers(mockUsers);
                 setFilteredUsers(mockUsers);
-                
-                // Actual API call would look like:
-                /*
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/users`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}` 
-                    }
-                });
-                if (!res.ok) throw new Error('Failed to fetch users');
-                const data = await res.json();
-                setUsers(data.users);
-                setFilteredUsers(data.users);
-                */
             } catch (error) {
                 console.error('Error fetching data:', error);
             } finally {
@@ -173,26 +155,7 @@ const ChatPage = () => {
                 ];
                 
                 setMessages(mockMessages);
-                
-                // Actual API call would look like:
-                /*
-                const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/chat/${activeChat.id}/messages`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
-                    }
-                });
-                if (!res.ok) throw new Error('Failed to fetch messages');
-                const data = await res.json();
-                const formattedMessages = data.messages.map((msg: any) => ({
-                    text: msg.content,
-                    sender: msg.sender === 'current_user' ? 'user' : 'bot',
-                    id: msg.id,
-                    timestamp: new Date(msg.timestamp)
-                }));
-                setMessages(formattedMessages);
-                */
+
             } catch (error) {
                 console.error('Error fetching messages:', error);
                 setMessages([]);
@@ -240,30 +203,6 @@ const ChatPage = () => {
             };
             
             setMessages(prev => [...prev, replyMessage]);
-            
-            // Actual API call would look like:
-            /*
-            const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL || EnvironmentVariables.BACKEND_URL}/v1/chat/${activeChat.id}/messages`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('access_token') || ''}`
-                },
-                body: JSON.stringify({ message: inputMessage })
-            });
-            
-            if (!res.ok) throw new Error('Failed to send message');
-            
-            const data = await res.json();
-            const replyMessage: Message = {
-                text: data.reply,
-                sender: 'bot',
-                id: data.id,
-                timestamp: new Date(data.timestamp)
-            };
-            
-            setMessages(prev => [...prev, replyMessage]);
-            */
         } catch (error) {
             console.error('Error sending message:', error);
             // Show error to user
@@ -336,6 +275,7 @@ const ChatPage = () => {
                         onClick={handleLogout}
                         className="p-1 rounded-full text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
                         title="Logout"
+                        aria-label="Logout"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
