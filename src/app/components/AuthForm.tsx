@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { motion, AnimatePresence, Variants } from "framer-motion";
 import { FormInput } from "./FormInput";
 import { OAuthButton } from "./OAuthButton";
-
+import  TextType from '../UI/TextType'  
+import TextPressure from "../UI/TextPressure";
 interface AuthFormProps {
     mode: "login" | "signup";
     setMode: (mode: "login" | "signup") => void;
@@ -98,7 +99,7 @@ const EnhancedFormInput: React.FC<EnhancedFormInputProps> = ({
     };
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-0">
             <label htmlFor={id} className="block text-sm font-semibold text-gray-300">
                 {label}
             </label>
@@ -111,7 +112,7 @@ const EnhancedFormInput: React.FC<EnhancedFormInputProps> = ({
                     value={value}
                     onChange={onChange}
                     autoComplete={autoComplete}
-                    className="w-full px-4 py-3 pr-12 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm"
+                    className="w-full px-3 py-2.5 pr-10 bg-gray-900/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300 backdrop-blur-sm text-sm"
                 />
                 {showPasswordToggle && (
                     <motion.button
@@ -237,31 +238,47 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                 variants={containerVariants}
                 initial="initial"
                 animate="animate"
-                className="w-full max-w-md p-6 bg-gray-800/80 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm"
+                className="w-full max-w-sm p-5 bg-gray-800/80 rounded-2xl shadow-2xl border border-gray-700 backdrop-blur-sm"
             >
                 <motion.div variants={itemVariants} className="flex flex-col items-center mb-4 text-center">
-                    <div className="p-2 bg-gray-900 rounded-full mb-3 border border-purple-500 shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-400">
-                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
+                    <div className="p-1.5 bg-gray-900 rounded-full mb-3 border border-purple-500 shadow-lg">
+                        <span className="text-2xl">🍍</span>
                     </div>
-                    <h1 className="text-3xl font-extrabold text-white mb-1">Project Zero</h1>
-                    <p className="text-base text-purple-300 font-medium mb-2">Real-time connections, redefined.</p>
-                    <p className="text-gray-400 text-sm">{mode === 'login' ? 'Sign in to your account' : 'Create a new account'}</p>
+                    <div className="mb-3" style={{ cursor: 'pointer' }}>
+                        <TextPressure
+                            text="Project Zero"
+                            flex={true}
+                            alpha={false}
+                            stroke={false}
+                            width={true}
+                            weight={true}
+                            italic={true}
+                            textColor="#ffffff"
+                            strokeColor="#ff0000"
+                            minFontSize={28}
+                        />
+                    </div>
+                    <div className="mb-2">
+                        <TextType 
+                            text={["Real-time connections, redefined"]}
+                            typingSpeed={75}
+                            pauseDuration={1500}
+                            showCursor={true}
+                            cursorCharacter="|"
+                            />
+                    </div>
+                    <p className="text-gray-400 text-xs">{mode === 'login' ? 'Sign in to your account' : 'Create a new account'}</p>
                 </motion.div>
                 <motion.div variants={itemVariants} className="flex justify-center gap-4 mb-4">
                     <button
-                        className={`text-base pb-2 px-3 transition-all duration-300 border-b-2 ${mode === 'login' ? 'font-bold text-purple-400 border-purple-400' : 'font-semibold text-gray-500 border-transparent hover:text-purple-400 hover:border-purple-400/50'}`}
+                        className={`text-sm pb-2 px-3 transition-all duration-300 border-b-2 ${mode === 'login' ? 'font-bold text-purple-400 border-purple-400' : 'font-semibold text-gray-500 border-transparent hover:text-purple-400 hover:border-purple-400/50'}`}
                         onClick={() => setMode('login')}
                         disabled={mode === 'login'}
                     >
                         Log In
                     </button>
                     <button
-                        className={`text-base pb-2 px-3 transition-all duration-300 border-b-2 ${mode === 'signup' ? 'font-bold text-purple-400 border-purple-400' : 'font-semibold text-gray-500 border-transparent hover:text-purple-400 hover:border-purple-400/50'}`}
+                        className={`text-sm pb-2 px-3 transition-all duration-300 border-b-2 ${mode === 'signup' ? 'font-bold text-purple-400 border-purple-400' : 'font-semibold text-gray-500 border-transparent hover:text-purple-400 hover:border-purple-400/50'}`}
                         onClick={() => setMode('signup')}
                         disabled={mode === 'signup'}
                     >
@@ -275,13 +292,13 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="space-y-4"
+                        className="space-y-2.5"
                         onSubmit={onSubmit}
                     >
                         {mode === 'signup' && (
                             <motion.div variants={itemVariants}>
                                 <EnhancedFormInput
-                                    label="Name"
+                                    label=""
                                     type="text"
                                     id="name"
                                     placeholder="Your Name"
@@ -294,7 +311,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         )}
                         <motion.div variants={itemVariants}>
                             <EnhancedFormInput
-                                label="Username"
+                                label=""
                                 type="text"
                                 id="username"
                                 placeholder={mode === 'signup' ? "Username" : "Username"}
@@ -307,7 +324,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         {mode === 'signup' && (
                             <motion.div variants={itemVariants}>
                                 <EnhancedFormInput
-                                    label="Email"
+                                    label=""
                                     type="email"
                                     id="email"
                                     placeholder="Email"
@@ -320,7 +337,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         )}
                         <motion.div variants={itemVariants}>
                             <EnhancedFormInput
-                                label="Password"
+                                label=""
                                 type="password"
                                 id="password"
                                 placeholder="Password"
@@ -349,7 +366,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                                 whileHover={{ scale: 1.03, y: -2, boxShadow: "0 10px 20px -5px rgba(168, 85, 247, 0.3)" }}
                                 whileTap={{ scale: 0.98, y: 0 }}
                                 type="submit"
-                                className="w-full py-2.5 px-6 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-base shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50"
+                                className="w-full py-2 px-6 rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold text-sm shadow-lg hover:from-purple-700 hover:to-indigo-700 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50"
                                 disabled={loading}
                             >
                                 {loading ? (mode === 'login' ? 'Logging in...' : 'Signing up...') : (mode === 'login' ? 'Log In' : 'Sign Up')}
@@ -357,12 +374,12 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                         </motion.div>
                     </motion.form>
                 </AnimatePresence>
-                <motion.div variants={itemVariants} className="flex items-center my-4">
+                <motion.div variants={itemVariants} className="flex items-center my-3">
                     <div className="flex-grow h-px bg-gray-600" />
-                    <span className="mx-4 text-gray-400 text-sm">OR</span>
+                    <span className="mx-4 text-gray-400 text-xs">OR</span>
                     <div className="flex-grow h-px bg-gray-600" />
                 </motion.div>
-                <motion.div variants={itemVariants} className="space-y-3">
+                <motion.div variants={itemVariants} className="space-y-2.5">
                     <OAuthButton provider="Google" onClick={loginWithGoogle} />
                     <OAuthButton provider="GitHub" onClick={loginWithGitHub} />
                 </motion.div>
