@@ -1,9 +1,9 @@
 import { Camera, Mesh, Plane, Program, Renderer, Texture, Transform } from "ogl";
 import { useEffect, useRef } from "react";
 
-function debounce(func: any, wait: number) {
+function debounce<T extends (...args: any[]) => any>(func: T, wait: number): (...args: Parameters<T>) => void {
   let timeout: NodeJS.Timeout;
-  return function (...args: any[]) {
+  return function (...args: Parameters<T>) {
     clearTimeout(timeout);
     timeout = setTimeout(() => func.apply(this, args), wait);
   };
@@ -238,6 +238,31 @@ class Media {
     img.onload = () => {
       texture.image = img;
       this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
+    };
+    img.onerror = () => {
+      console.warn(`Failed to load image: ${this.image}`);
+      // Create a fallback texture with a placeholder color
+      const canvas = document.createElement("canvas");
+      canvas.width = 800;
+      canvas.height = 600;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        // Create a gradient background as fallback
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, "#f0f0f0");
+        gradient.addColorStop(1, "#e0e0e0");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Add error text
+        ctx.fillStyle = "#999";
+        ctx.font = "24px Arial";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Image failed to load", canvas.width / 2, canvas.height / 2);
+      }
+      texture.image = canvas;
+      this.program.uniforms.uImageSizes.value = [canvas.width, canvas.height];
     };
   }
   

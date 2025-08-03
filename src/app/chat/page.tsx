@@ -26,6 +26,7 @@ const ChatPage = () => {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const readTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   
   const [currentUser, setCurrentUser] = useState<{ name: string; avatar?: string } | null>(null);
   const [showNewChatModal, setShowNewChatModal] = useState(false);
@@ -168,6 +169,16 @@ const ChatPage = () => {
     getMessages();
   }, [activeChat]);
 
+  // Cleanup timeout on unmount or chat change
+  useEffect(() => {
+    return () => {
+      if (readTimeoutRef.current) {
+        clearTimeout(readTimeoutRef.current);
+        readTimeoutRef.current = null;
+      }
+    };
+  }, [activeChat]);
+
   const handleLogout = useCallback(async () => {
     try {
       localStorage?.removeItem('username');
@@ -180,6 +191,13 @@ const ChatPage = () => {
 
   const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim() || !activeChat) return;
+    
+    // Clear any existing timeout
+    if (readTimeoutRef.current) {
+      clearTimeout(readTimeoutRef.current);
+      readTimeoutRef.current = null;
+    }
+    
     const newMessage: Message = {
       text: inputMessage,
       sender: 'user',
@@ -195,8 +213,9 @@ const ChatPage = () => {
     setMessages(prev => prev.map(msg => msg.id === newMessage.id ? { ...msg, status: 'sent' } : msg));
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    setTimeout(() => {
+    readTimeoutRef.current = setTimeout(() => {
       setMessages(prev => prev.map(msg => msg.id === newMessage.id ? { ...msg, status: 'read' } : msg));
+      readTimeoutRef.current = null;
     }, 1000);
 
     setIsSending(false);

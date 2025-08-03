@@ -1,4 +1,26 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useMemo } from 'react';
+
+interface TextPressureProps {
+  text?: string;
+  fontFamily?: string;
+  fontUrl?: string;
+  
+  width?: boolean;
+  weight?: boolean;
+  italic?: boolean;
+  alpha?: boolean;
+  
+  flex?: boolean;
+  stroke?: boolean;
+  scale?: boolean;
+  
+  textColor?: string;
+  strokeColor?: string;
+  strokeWidth?: number;
+  className?: string;
+  
+  minFontSize?: number;
+}
 
 const TextPressure = ({
   text = 'Compressa',
@@ -21,21 +43,44 @@ const TextPressure = ({
 
   minFontSize = 24,
 
-}) => {
-  const containerRef = useRef(null);
-  const titleRef = useRef(null);
-  const spansRef = useRef([]);
+}: TextPressureProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const spansRef = useRef<(HTMLSpanElement | null)[]>([]);
 
   const mouseRef = useRef({ x: 0, y: 0 });
   const cursorRef = useRef({ x: 0, y: 0 });
 
   const [fontSize, setFontSize] = useState(minFontSize);
   const [scaleY, setScaleY] = useState(1);
-  const [lineHeight, setLineHeight] = useState(1);
+  const [lineHeight, setLineHeight] = useState<string>('1');
 
   const chars = text.split('');
 
-  const dist = (a, b) => {
+  // Memoize styles to prevent recreation on every render
+  const styles = useMemo(() => `
+    @font-face {
+      font-family: '${fontFamily}';
+      src: url('${fontUrl}');
+      font-style: normal;
+    }
+    .stroke span {
+      position: relative;
+      color: ${textColor};
+    }
+    .stroke span::after {
+      content: attr(data-char);
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: transparent;
+      z-index: -1;
+      -webkit-text-stroke-width: ${strokeWidth}px;
+      -webkit-text-stroke-color: ${strokeColor};
+    }
+  `, [fontFamily, fontUrl, textColor, strokeWidth, strokeColor]);
+
+  const dist = (a: { x: number; y: number }, b: { x: number; y: number }) => {
     const dx = b.x - a.x;
     const dy = b.y - a.y;
     return Math.sqrt(dx * dx + dy * dy);
@@ -79,7 +124,7 @@ const TextPressure = ({
 
     setFontSize(newFontSize);
     setScaleY(1);
-    setLineHeight(1);
+    setLineHeight('1');
 
     requestAnimationFrame(() => {
       if (!titleRef.current) return;
@@ -88,7 +133,7 @@ const TextPressure = ({
       if (scale && textRect.height > 0) {
         const yRatio = containerH / textRect.height;
         setScaleY(yRatio);
-        setLineHeight(yRatio);
+        setLineHeight(yRatio.toString());
       }
     });
   };
@@ -98,7 +143,7 @@ const TextPressure = ({
     window.addEventListener('resize', setSize);
     return () => window.removeEventListener('resize', setSize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scale, text]);
+  }, [scale, text, chars.length, minFontSize]);
 
   useEffect(() => {
     let rafId;
@@ -129,7 +174,7 @@ const TextPressure = ({
           const wdth = width ? Math.floor(getAttr(d, 5, 200)) : 100;
           const wght = weight ? Math.floor(getAttr(d, 100, 900)) : 400;
           const italVal = italic ? getAttr(d, 0, 1).toFixed(2) : 0;
-          const alphaVal = alpha ? getAttr(d, 0, 1).toFixed(2) : 1;
+          const alphaVal = alpha ? getAttr(d, 0, 1).toFixed(2) : '1';
 
           span.style.opacity = alphaVal;
           span.style.fontVariationSettings = `'wght' ${wght}, 'wdth' ${wdth}, 'ital' ${italVal}`;
@@ -148,27 +193,7 @@ const TextPressure = ({
       ref={containerRef}
       className="relative w-full h-full overflow-hidden bg-transparent cursor-pointer"
     >
-      <style>{`
-        @font-face {
-          font-family: '${fontFamily}';
-          src: url('${fontUrl}');
-          font-style: normal;
-        }
-        .stroke span {
-          position: relative;
-          color: ${textColor};
-        }
-        .stroke span::after {
-          content: attr(data-char);
-          position: absolute;
-          left: 0;
-          top: 0;
-          color: transparent;
-          z-index: -1;
-          -webkit-text-stroke-width: ${strokeWidth}px;
-          -webkit-text-stroke-color: ${strokeColor};
-        }
-      `}</style>
+      <style>{styles}</style>
 
       <h1
         ref={titleRef}
@@ -177,7 +202,7 @@ const TextPressure = ({
         style={{
           fontFamily,
           fontSize: fontSize,
-          lineHeight,
+          lineHeight: lineHeight.toString(),
           transform: `scale(1, ${scaleY})`,
           transformOrigin: 'center top',
           margin: 0,
@@ -188,7 +213,9 @@ const TextPressure = ({
         {chars.map((char, i) => (
           <span
             key={i}
-            ref={(el) => (spansRef.current[i] = el)}
+            ref={(el) => {
+              spansRef.current[i] = el;
+            }}
             data-char={char}
             className="inline-block"
           >

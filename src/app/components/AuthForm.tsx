@@ -299,6 +299,7 @@ export const AuthForm: React.FC<AuthFormProps> = ({
                             <motion.div variants={itemVariants}>
                                 <EnhancedFormInput
                                     label=""
+                                    aria-label="Your Name"
                                     type="text"
                                     id="name"
                                     placeholder="Your Name"
