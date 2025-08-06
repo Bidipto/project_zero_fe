@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
 import CircularGalleryWrapper from './CircularGalleryWrapper';
+import EnvironmentVariables from '@/config/config';
 
 interface User {
   id: string;
@@ -36,11 +37,13 @@ const ChatPage = () => {
   const [activeChat, setActiveChat] = useState<User | null>(null);
   const [inputMessage, setInputMessage] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [username, setUsername] = useState<User[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [recentChats, setRecentChats] = useState<User[]>([]);
+  const [userListError, setUserListError] = useState<string | null>(null);
 
   // Memoized mock users
   const mockUsers = useMemo<User[]>(() => [
@@ -55,7 +58,7 @@ const ChatPage = () => {
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setFilteredUsers(
+      setUsername(
         searchQuery.trim()
           ? users.filter(user => user.name.toLowerCase().includes(searchQuery.toLowerCase()))
           : users
@@ -71,7 +74,6 @@ const ChatPage = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
-
   // Simplified animation variants
   const messageVariants: Variants = useMemo(() => ({
     hidden: { opacity: 0, y: 20, scale: 0.9 },
@@ -101,7 +103,7 @@ const ChatPage = () => {
       x: 5, 
       backgroundColor: 'rgba(139, 92, 246, 0.15)', 
       boxShadow: "0 8px 25px rgba(139, 92, 246, 0.2)",
-      transition: { duration: 0.2 } 
+      transition: { duration: 0.2 }
     },
     tap: { scale: 0.98 }
   }), []);
@@ -128,6 +130,7 @@ const ChatPage = () => {
     visible: { x: 0, opacity: 1, transition: { type: 'spring', stiffness: 300, damping: 20 } }
   }), []);
 
+  
   const statusColors = {
     online: 'bg-emerald-500 shadow-emerald-500/50',
     offline: 'bg-slate-500 shadow-slate-500/50',
@@ -149,15 +152,51 @@ const ChatPage = () => {
         name: username,
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=8b5cf6&color=fff&size=128`
       });
+      
+      try {
+        // const userListData = await getUserList();
+        // const userListData = await getPrivateChat();
+        const userListData = await getUserList();
+        const usernames = userListData.usernames || userListData.data || userListData || [];
+        
+        // Handle both string array and object array formats
+        const transformedUsers: User[] = usernames.map((user: any, index: number) => {
+          // If user is a string, treat it as username
+          if (typeof user === 'string') {
+            return {
+              id: `user-${index}`,
+              name: user,
+              status: 'online' as const,
+              avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user)}&background=8b5cf6&color=fff&size=128`,
+              lastSeen: new Date()
+            };
+          }
+          // If user is an object, extract properties
+          return {
+            id: user.id || user.username || `user-${index}`,
+            name: user.username || user.name || `User ${index + 1}`,
+            status: 'online' as const,
+            avatar: user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.name || `User ${index + 1}`)}&background=8b5cf6&color=fff&size=128`,
+            lastSeen: new Date()
+          };
+        });
+        
+        setUsers(transformedUsers);
+        setUsername(transformedUsers);
+        setUserListError(null);
+      } catch (error) {
+        console.error('Failed to fetch user list:', error);
+        setUserListError('Failed to load user list. Using demo data.');
+        // Fallback to mock users if API fails
+        setUsers(mockUsers);
+        setUsername(mockUsers);
+      }
+      
       await new Promise(resolve => setTimeout(resolve, 800));
-      setUsers(mockUsers);
-      setFilteredUsers(mockUsers);
       setIsLoading(false);
     };
     fetchData();
   }, [mockUsers]);
-
-  // Fetch messages
   useEffect(() => {
     if (!activeChat) return;
     setIsLoading(true);
@@ -168,8 +207,7 @@ const ChatPage = () => {
     };
     getMessages();
   }, [activeChat]);
-
-  // Cleanup timeout on unmount or chat change
+  // this is a cleanup function for the readTimeoutRef
   useEffect(() => {
     return () => {
       if (readTimeoutRef.current) {
@@ -188,6 +226,50 @@ const ChatPage = () => {
       console.error("Failed to logout:", error);
     }
   }, [router]);
+
+  const retryUserList = useCallback(async () => {
+    setIsLoading(true);
+    setUserListError(null);
+    try {
+      const userListData = await getUserList();
+      // Transform API data to match our User interface
+      // The API returns UsernamesListResponse, so we need to extract the usernames
+      const usernames = userListData.usernames || userListData.data || userListData || [];
+      console.log('Retry - Usernames from API:', usernames);
+      
+      // Handle both string array and object array formats
+      const transformedUsers: User[] = usernames.map((user: any, index: number) => {
+        // If user is a string, treat it as username
+        if (typeof user === 'string') {
+          return {
+            id: `user-${index}`,
+            name: user,
+            status: 'online' as const,
+            avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user)}&background=8b5cf6&color=fff&size=128`,
+            lastSeen: new Date()
+          };
+        }
+        // If user is an object, extract properties
+        return {
+          id: user.id || user.username || `user-${index}`,
+          name: user.username || user.name || `User ${index + 1}`,
+          status: 'online' as const,
+          avatar: user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.name || `User ${index + 1}`)}&background=8b5cf6&color=fff&size=128`,
+          lastSeen: new Date()
+        };
+      });
+      
+      setUsers(transformedUsers);
+      setUsername(transformedUsers);
+      setUserListError(null);
+    } catch (error) {
+      console.error('Failed to fetch user list:', error);
+      setUserListError('Failed to load user list. Using demo data.');
+      setUsers(mockUsers);
+      setUsername(mockUsers);
+    }
+    setIsLoading(false);
+  }, [mockUsers]);
 
   const handleSendMessage = useCallback(async () => {
     if (!inputMessage.trim() || !activeChat) return;
@@ -234,22 +316,56 @@ const ChatPage = () => {
     const existingUser = users.find(user => user.name.toLowerCase().includes(newChatUsername.toLowerCase()));
     if (existingUser) {
       setActiveChat(existingUser);
+      // Add to recent chats if not already there
+      setRecentChats(prev => {
+        const exists = prev.find(chat => chat.id === existingUser.id);
+        if (!exists) {
+          return [existingUser, ...prev];
+        }
+        return prev;
+      });
       setShowStartChatModal(false);
       setNewChatUsername("");
       return;
     }
-    const newUser: User = {
-      id: `new-${Date.now()}`,
-      name: newChatUsername,
-      status: 'offline',
-      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newChatUsername)}&background=8b5cf6&color=fff&size=128`,
-      lastSeen: new Date()
-    };
-    setUsers(prev => [newUser, ...prev]);
-    setFilteredUsers(prev => [newUser, ...prev]);
-    setActiveChat(newUser);
-    setShowStartChatModal(false);
-    setNewChatUsername("");
+    
+    try {
+      // Try to create a private chat with the backend
+      await createPrivateChat(newChatUsername);
+      console.log("new chat started")
+      
+      // If successful, create the user locally
+      const newUser: User = {
+        id: `new-${Date.now()}`,
+        name: newChatUsername,
+        status: 'offline',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newChatUsername)}&background=8b5cf6&color=fff&size=128`,
+        lastSeen: new Date()
+      };
+      setUsers(prev => [newUser, ...prev]);
+      setUsername(prev => [newUser, ...prev]);
+
+      setRecentChats(prev => [newUser, ...prev]);
+      setShowStartChatModal(false);
+      setNewChatUsername("");
+    } catch (error) {
+      console.error('Failed to create private chat:', error);
+
+      const newUser: User = {
+        id: `new-${Date.now()}`,
+        name: newChatUsername,
+        status: 'offline',
+        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(newChatUsername)}&background=8b5cf6&color=fff&size=128`,
+        lastSeen: new Date()
+      };
+      setUsers(prev => [newUser, ...prev]);
+      setUsername(prev => [newUser, ...prev]);
+      setActiveChat(newUser);
+      // Add to recent chats
+      setRecentChats(prev => [newUser, ...prev]);
+      setShowStartChatModal(false);
+      setNewChatUsername("");
+    }
   }, [newChatUsername, users]);
 
   const handleKeyDownNewChat = useCallback((e: React.KeyboardEvent) => {
@@ -261,7 +377,7 @@ const ChatPage = () => {
 
   const formatTime = (date: Date) => {
     const diffMs = Date.now() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
+    const diffMins = Math.floor(diffMs / 60000  );
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
     if (diffMins < 1) return 'now';
@@ -273,7 +389,7 @@ const ChatPage = () => {
 
   const getMessageStatusColor = (status?: string) => {
     return {
-      sending: 'text-gray-500',
+      sending: 'text-gray-500', 
       sent: 'text-gray-400',
       delivered: 'text-blue-400',
       read: 'text-green-400'
@@ -292,6 +408,114 @@ const ChatPage = () => {
     }
     return { sent: '✓', delivered: '✓✓', read: '✓✓' }[status || ''] || '';
   };
+  const getUserList = async() => {
+    try {
+      const token = localStorage?.getItem('access_token');
+      const headers: Record<string, string> = { 
+        'Content-Type': 'application/json', 
+        'accept': 'application/json' 
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/user/usernames`, {
+        method: 'GET',
+        headers: headers
+      });
+            
+      if (!res.ok) {
+        const errorData = await res.text();
+        console.error('API Error Response:', errorData);
+        throw new Error(`Failed to fetch user list: ${res.status} - ${errorData}`);
+      }
+      
+      const data = await res.json();
+      return data;
+    } catch (error) {
+      console.error('Error fetching user list:', error);
+      throw error;
+    }
+  }
+  const getPrivateChat = async() =>{
+    try {
+      const token = localStorage?.getItem('access_token')
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'accept': 'application/json'
+      }
+      if(token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/chat/private`, {
+        method: 'GET',
+        headers: headers
+      });
+      console.log(res.status)
+      if(!res.ok) {
+        const errorData = await res.text();
+        console.error('API Error Response:', errorData);
+        throw new Error(`Failed to get private chats: ${res.status} - ${errorData}`);
+      }
+      const data = await res.json()
+      console.log("This is the API response ", data)
+      return data
+    }
+    catch (error) {
+      console.log("Error fetching users", error)
+      throw error
+    }
+  }
+  const createPrivateChat = async (username: string) => {
+    const newUser: User = {
+      id: `new-${Date.now()}`,
+      name: username,
+      status: 'offline',
+      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(username)}&background=8b5cf6&color=fff&size=128`,
+      lastSeen: new Date()
+    };
+    setActiveChat(newUser);
+    setShowStartChatModal(false);
+    // Add to recent chats
+    setRecentChats(prev => {
+      const exists = prev.find(chat => chat.name === username);
+      if (!exists) {
+        return [newUser, ...prev];
+      }
+      return prev;
+    });
+    try{
+      const token = localStorage.getItem('access_token')
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        'accept': 'application/json'
+      }
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
+      const res = await fetch(`${EnvironmentVariables.BACKEND_URL}/v1/chat/private`, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify({
+          "other_username": username
+        })
+      });
+      console.log(res.status)
+      if(!res.ok) {
+        const errorData = await res.text();
+        console.error('API Error Response:', errorData);
+        throw new Error(`Failed to create private chat: ${res.status} - ${errorData}`);
+      }
+      const data = await res.json()
+      console.log("This is the API response data: ", data)
+      return data
+    }
+    catch (error){
+      throw error
+    }
+  }
 
   if (!currentUser) {
     return (
@@ -459,107 +683,48 @@ const ChatPage = () => {
 
         {/* User List */}
         <div className="flex-1 overflow-y-auto">
-          <motion.h3 
-            className="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-2"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-          >
-            <motion.div 
-              className="w-2 h-2 rounded-full bg-purple-500"
-              animate={{ scale: [1, 1.5, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-            Recent Chats ({filteredUsers.length})
-          </motion.h3>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <motion.div className="text-center">
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                  className="w-8 h-8 border-3 border-purple-500 border-t-transparent rounded-full mx-auto mb-2"
-                />
-                <motion.p 
-                  className="text-gray-400 text-xs"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  Loading contacts...
-                </motion.p>
-              </motion.div>
+          <h3 className="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Recent Chats</h3>
+          
+          {recentChats.length === 0 ? (
+            <div className="px-4 py-8 text-center">
+              
             </div>
           ) : (
-            <motion.ul className="space-y-2 px-3 pb-4">
+            <ul className="space-y-2 px-3 pb-4">
               <AnimatePresence>
-                {filteredUsers.map((user, i) => (
+                {recentChats.map((chat, index) => (
                   <motion.li
-                    key={user.id}
-                    custom={i}
+                    key={chat.id}
                     variants={chatItemVariants}
                     initial="hidden"
                     animate="visible"
-                    exit={{ opacity: 0, x: -50 }}
+                    custom={index}
                     whileHover="hover"
                     whileTap="tap"
-                    layout
                     className={`flex items-center p-4 rounded-2xl cursor-pointer border transition-colors ${
-                      activeChat?.id === user.id 
-                        ? 'bg-gradient-to-r from-purple-900/50 to-purple-800/30 border-purple-500/50' 
-                        : 'bg-gray-700/30 border-gray-600/30 hover:bg-gray-700/50'
+                      activeChat?.id === chat.id ? 'bg-purple-900/30 border-purple-500/50' : 'bg-gray-700/30 border-gray-600/30'
                     }`}
-                    onClick={() => setActiveChat(user)}
+                    onClick={() => setActiveChat(chat)}
                   >
-                    <motion.div className="relative mr-4" whileHover={{ scale: 1.1 }}>
+                    <div className="relative mr-4">
                       <img 
-                        src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=8b5cf6&color=fff&size=128`} 
-                        alt={user.name}
+                        src={chat.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.name)}&background=8b5cf6&color=fff&size=128`} 
+                        alt={chat.name}
                         className="w-12 h-12 rounded-full object-cover shadow-lg"
                       />
-                      <motion.div 
-                        className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${statusColors[user.status]} ${statusPulse[user.status]}`}
-                        animate={user.status === 'online' ? { scale: [1, 1.2, 1] } : {}}
-                        transition={{ duration: 2, repeat: Infinity }}
-                      />
-                    </motion.div>
+                      <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${statusColors[chat.status]}`}></div>
+                    </div>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <p className="font-semibold truncate text-white">{user.name}</p>
-                        <span className="text-xs text-gray-400">{formatTime(user.lastSeen || new Date())}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm text-gray-400 truncate flex-1">
-                          {user.status === 'online' ? (
-                            <span className="text-emerald-400">Online</span>
-                          ) : user.status === 'away' ? (
-                            <span className="text-amber-400">Away</span>
-                          ) : (
-                            <span className="text-gray-500">Last seen {formatTime(user.lastSeen || new Date())}</span>
-                          )}
-                        </p>
-                        {user.typing && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="flex gap-1"
-                          >
-                            {[0, 1, 2].map((i) => (
-                              <motion.div
-                                key={i}
-                                className="w-1 h-1 bg-purple-400 rounded-full"
-                                animate={{ y: [0, -4, 0] }}
-                                transition={{ duration: 0.6, repeat: Infinity, delay: i * 0.1 }}
-                              />
-                            ))}
-                          </motion.div>
-                        )}
-                      </div>
+                      <p className="font-semibold truncate text-white">{chat.name}</p>
+                      <p className="text-sm text-gray-400 truncate">
+                        {chat.status === 'online' ? 'Online' : 
+                         chat.status === 'away' ? 'Away' : `Last seen ${formatTime(chat.lastSeen || new Date())}`}
+                      </p>
                     </div>
                   </motion.li>
                 ))}
               </AnimatePresence>
-            </motion.ul>
+            </ul>
           )}
         </div>
       </motion.div>
@@ -574,6 +739,7 @@ const ChatPage = () => {
             exit="exit"
             className="fixed inset-0 z-30 bg-black/70 backdrop-blur-sm md:hidden"
             onClick={() => setShowNewChatModal(false)}
+            
           >
             <motion.div
               initial={{ x: '-100%' }}
@@ -660,35 +826,42 @@ const ChatPage = () => {
               </div>
               <div className="h-[calc(100%-200px)] overflow-y-auto">
                 <h3 className="px-4 py-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">Recent Chats</h3>
-                <ul className="space-y-2 px-3 pb-4">
-                  {filteredUsers.map((user) => (
-                    <motion.li
-                      key={user.id}
-                      whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.15)', x: 8 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`flex items-center p-4 rounded-2xl cursor-pointer border transition-colors ${
-                        activeChat?.id === user.id ? 'bg-purple-900/30 border-purple-500/50' : 'bg-gray-700/30 border-gray-600/30'
-                      }`}
-                      onClick={() => { setActiveChat(user); setShowNewChatModal(false); }}
-                    >
-                      <div className="relative mr-4">
-                        <img 
-                          src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=8b5cf6&color=fff&size=128`} 
-                          alt={user.name}
-                          className="w-12 h-12 rounded-full object-cover shadow-lg"
-                        />
-                        <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${statusColors[user.status]}`}></div>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-semibold truncate text-white">{user.name}</p>
-                        <p className="text-sm text-gray-400 truncate">
-                          {user.status === 'online' ? 'Online' : 
-                           user.status === 'away' ? 'Away' : `Last seen ${formatTime(user.lastSeen || new Date())}`}
-                        </p>
-                      </div>
-                    </motion.li>
-                  ))}
-                </ul>
+                
+                {recentChats.length === 0 ? (
+                  <div className="px-4 py-8 text-center">
+                    
+                  </div>
+                ) : (
+                  <ul className="space-y-2 px-3 pb-4">
+                    {recentChats.map((chat) => (
+                      <motion.li
+                        key={chat.id}
+                        whileHover={{ backgroundColor: 'rgba(139, 92, 246, 0.15)', x: 8 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`flex items-center p-4 rounded-2xl cursor-pointer border transition-colors ${
+                          activeChat?.id === chat.id ? 'bg-purple-900/30 border-purple-500/50' : 'bg-gray-700/30 border-gray-600/30'
+                        }`}
+                        onClick={() => { setActiveChat(chat); setShowNewChatModal(false); }}
+                      >
+                        <div className="relative mr-4">
+                          <img 
+                            src={chat.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(chat.name)}&background=8b5cf6&color=fff&size=128`} 
+                            alt={chat.name}
+                            className="w-12 h-12 rounded-full object-cover shadow-lg"
+                          />
+                          <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${statusColors[chat.status]}`}></div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate text-white">{chat.name}</p>
+                          <p className="text-sm text-gray-400 truncate">
+                            {chat.status === 'online' ? 'Online' : 
+                             chat.status === 'away' ? 'Away' : `Last seen ${formatTime(chat.lastSeen || new Date())}`}
+                          </p>
+                        </div>
+                      </motion.li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </motion.div>
           </motion.div>
@@ -747,6 +920,56 @@ const ChatPage = () => {
                   whileFocus={{ scale: 1.02 }}
                 />
               </motion.div>
+              <ul className="space-y-1 px-2 pb-4">
+            {username.map((user) => (
+              <motion.li
+                key={user.id}
+                variants={chatItemVariants}
+                initial="hidden"
+                animate="visible"
+                whileHover="hover"
+                whileTap="tap"
+                className={`flex items-center p-4 rounded-2xl cursor-pointer border transition-colors ${
+                  activeChat?.id === user.id ? 'bg-purple-900/30 border-purple-500/50' : 'bg-gray-700/30 border-gray-600/30'
+                }`}
+                
+                onClick={() => {
+                  const newUser: User = {
+                    id: user.id,
+                    name: user.name,
+                    status: user.status,
+                    avatar: user.avatar,
+                    lastSeen: user.lastSeen
+                  };
+                  setRecentChats(prev => {
+                    const exists = prev.find(chat => chat.id === newUser.id);
+                    if (!exists) {
+                      return [newUser, ...prev];
+                    }
+                    return prev;
+                  });
+                  setShowStartChatModal(false);
+                  createPrivateChat(user.name)
+                }}
+              >
+                <div className="relative mr-4">
+                  <img 
+                    src={user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=8b5cf6&color=fff&size=128`} 
+                    alt={user.name}
+                    className="w-12 h-12 rounded-full object-cover shadow-lg"
+                  />
+                  <div className={`absolute bottom-0 right-0 w-4 h-4 rounded-full border-2 border-gray-800 ${statusColors[user.status]}`}></div>
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold truncate text-white">{user.name}</p>
+                  <p className="text-sm text-gray-400 truncate">
+                    {user.status === 'online' ? 'Online' : 
+                     user.status === 'away' ? 'Away' : `Last seen ${formatTime(user.lastSeen || new Date())}`}
+                  </p>
+                </div>
+              </motion.li>
+            ))}
+          </ul>
               <motion.div className="flex gap-4">
                 <motion.button
                   variants={buttonVariants}
@@ -789,7 +1012,7 @@ const ChatPage = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              <CircularGalleryWrapper 
+              {/* <CircularGalleryWrapper 
                 bend={3} 
                 textColor="#ffffff" 
                 borderRadius={0.05} 
@@ -802,7 +1025,7 @@ const ChatPage = () => {
                   { image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&h=600&fit=crop", text: "David Wilson" },
                   { image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=800&h=600&fit=crop", text: "Lisa Anderson" },
                 ]}
-              />
+              /> */}
             </motion.div>
             
             <motion.h2 

@@ -146,7 +146,7 @@ const TextPressure = ({
   }, [scale, text, chars.length, minFontSize]);
 
   useEffect(() => {
-    let rafId;
+    let rafId;  
     const animate = () => {
       mouseRef.current.x += (cursorRef.current.x - mouseRef.current.x) / 15;
       mouseRef.current.y += (cursorRef.current.y - mouseRef.current.y) / 15;
