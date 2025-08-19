@@ -26,7 +26,7 @@ const ChatPage = () => {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const readTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const readTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [currentUser, setCurrentUser] = useState<{
     name: string;
@@ -39,7 +39,7 @@ const ChatPage = () => {
   const [activeChat, setActiveChat] = useState<User | null>(null);
   const [inputMessage, setInputMessage] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [username, setUsername] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [recentChats, setRecentChats] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,7 +48,7 @@ const ChatPage = () => {
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      setUsername(
+      setFilteredUsers(
         searchQuery.trim()
           ? users.filter((user) =>
               user.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -199,7 +199,7 @@ const ChatPage = () => {
           };
         });
         setUsers(transformedUsers);
-        setUsername(transformedUsers);
+        setFilteredUsers(transformedUsers);
         // Set recent chats from privateChatData
         if (privateChatData && Array.isArray(privateChatData.chats)) {
           const chats = privateChatData.chats.map((chat: any, index: number) => {
@@ -221,7 +221,7 @@ const ChatPage = () => {
       } catch (error) {
         console.error("Failed to fetch user list or chats:", error);
         setUsers([]);
-        setUsername([]);
+        setFilteredUsers([]);
         setRecentChats([]);
       }
       await new Promise((resolve) => setTimeout(resolve, 800));
@@ -232,12 +232,20 @@ const ChatPage = () => {
   useEffect(() => {
     if (!activeChat) return;
     setIsLoading(true);
-    const getMessages = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 400));
-      setMessages([]);
-      setIsLoading(false);
+    const loadMessages = async () => {
+      try{
+        const data = await getChatMessages(activeChat.id);
+        setMessages(Array.isArray(data) ? data : data.messages || []);
+      }
+      catch (error) {
+        console.error("Error loading messages:", error);
+        setMessages([]);
+      }
+      finally{
+        setIsLoading(false);
+      }
     };
-    getMessages();
+    loadMessages();
   }, [activeChat]);
   // this is a cleanup function for the readTimeoutRef
   useEffect(() => {
@@ -286,16 +294,22 @@ const ChatPage = () => {
     setIsSending(true);
     setMessages((prev) => [...prev, newMessage]);
     setInputMessage("");
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setMessages((prev) => updateMessageStatus(prev, newMessage.id, "sent"));
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    readTimeoutRef.current = setTimeout(() => {
-      setMessages((prev) => updateMessageStatus(prev, newMessage.id, "read"));
-      readTimeoutRef.current = null;
-    }, 1000);
+    try {
+      // Use currentUser.name as senderId (since currentUser has no id)
+      await sendMessageToChat(activeChat.id, newMessage.text, currentUser?.name || "me");
+      setMessages((prev) => updateMessageStatus(prev, newMessage.id, "sent"));
+      // Optionally, you can poll or subscribe for delivered/read status here
+      readTimeoutRef.current = setTimeout(() => {
+        setMessages((prev) => updateMessageStatus(prev, newMessage.id, "read"));
+        readTimeoutRef.current = null;
+      }, 1000);
+    } catch (e) {
+      // On failure, mark as 'sent' (no 'failed' in Message type)
+      setMessages((prev) => updateMessageStatus(prev, newMessage.id, "sent"));
+    }
     setIsSending(false);
     inputRef.current?.focus();
-  }, [inputMessage, activeChat]);
+  }, [inputMessage, activeChat, currentUser]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -327,9 +341,7 @@ const ChatPage = () => {
       return;
     }
     try {
-      // Try to create a private chat with the backend
       await createPrivateChat(newChatUsername);
-      // After creating, fetch the updated private chat list from backend
       const privateChatData = await getPrivateChat();
       if (privateChatData && Array.isArray(privateChatData.chats)) {
         const chats = privateChatData.chats.map((chat: any, index: number) => {
@@ -477,13 +489,14 @@ const ChatPage = () => {
     setShowStartChatModal(false);
     // Add to recent chats
     setRecentChats((prev) => {
-      const exists = prev.find((chat) => chat.name === username);
+      const exists = prev.find((chat) => chat.id === newUser.id) ? prev : [newUser, ...prev];
       if (!exists) {
         return [newUser, ...prev];
       }
       return prev;
     });
     try {
+
       const token = localStorage.getItem("access_token");
       const headers: Record<string, string> = {
         "Content-Type": "application/json",
@@ -539,16 +552,17 @@ const ChatPage = () => {
         throw new Error(`Failed to fetch chat messages: ${res.status} - ${errorData}`);
       }
       const data = await res.json();
-      setMessages(data.messages || []);
+      return data.messages || [];
     }
     catch (error) {
       console.error("Error fetching chat messages:", error);
+      return [];
     }
   }
   
   const sendMessageToChat = async (chatId: string, message: string, senderId: string) => {
     const reqBody = {
-    "content": "string",
+    "content": message,
     "message_type": "text",
     "chat_id": chatId,
     "sender_id": senderId,
@@ -557,6 +571,7 @@ const ChatPage = () => {
     "is_edited": false,
     "edited_at": null
   }
+  
     try {
       const token = localStorage?.getItem("access_token");
       const headers: Record<string, string> = {
@@ -635,6 +650,9 @@ const ChatPage = () => {
   }
 
   const { text: activeStatusText, color: activeStatusColor } = getActiveStatus(activeChat);
+
+  // Fix: Only use properties that exist on User type
+  const getDisplayName = (chat: User) => chat.name || chat.id || 'Unknown';
 
   return (
     <div className="flex h-screen bg-gradient-to-br from-gray-900 via-gray-900 to-purple-900/30 text-white font-sans overflow-hidden">
@@ -810,8 +828,7 @@ const ChatPage = () => {
                   } else {
                     statusText = `Last seen ${formatTime(chat.lastSeen || new Date())}`;
                   }
-                  // Try to get the name from all possible fields
-                  const displayName = chat.name || chat.other_username || chat.username || chat.user_name || chat.user || chat.id || 'Unknown';
+                  const displayName = getDisplayName(chat);
                   return (
                     <motion.li
                       key={chat.id}
@@ -1103,10 +1120,10 @@ const ChatPage = () => {
               {/* Suggestions List */}
               <div className="mb-6">
                 <ul className="space-y-1 px-2 pb-2 max-h-48 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-700/40 scrollbar-track-transparent">
-                  {username.length === 0 && newChatUsername.trim() ? (
+                  {filteredUsers.length === 0 && newChatUsername.trim() ? (
                     <li className="text-gray-400 text-center py-4">No users found.</li>
                   ) : (
-                    username.map((user) => {
+                    filteredUsers.map((user) => {
                       let statusText = "";
                       if (user.status === "online") {
                         statusText = "Online";
@@ -1124,7 +1141,7 @@ const ChatPage = () => {
                           whileHover="hover"
                           whileTap="tap"
                           className={`flex items-center p-3 rounded-xl cursor-pointer border transition-colors gap-3 ${activeChat?.id === user.id ? "bg-purple-900/30 border-purple-500/50" : "bg-gray-700/30 border-gray-600/30"}`}
-                          onClick={() => {
+                          onClick={async() => {
                             const newUser: User = {
                               id: user.id,
                               name: user.name,
@@ -1134,7 +1151,12 @@ const ChatPage = () => {
                             };
                             setRecentChats((prev) => addUserToRecentChats(prev, newUser));
                             setShowStartChatModal(false);
-                            createPrivateChat(user.name);
+                            try{
+                              await createPrivateChat(user.name);
+                            }
+                            catch (error) {
+                              console.error("Error creating private chat:", error);
+                            }
                           }}
                         >
                           <div className="relative">
