@@ -122,7 +122,7 @@ export const MainChatArea: React.FC<MainChatAreaProps> = ({
           <div>
             <h3 className="font-semibold text-white">{activeChat.name}</h3>
             <p className="text-xs text-gray-400">
-              {isTyping ? 'Typing...' : activeChat.status === 'online' ? 'Online' : `Last seen ${activeChat.lastSeen && formatTime(activeChat.lastSeen)}`}
+              {isTyping ? 'Typing...' : activeChat.status === 'online' ? 'Online' : activeChat.lastSeen ? `Last seen ${formatTime(activeChat.lastSeen)}` : 'offline'}
             </p>
           </div>
         </div>

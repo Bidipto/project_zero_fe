@@ -175,7 +175,7 @@ export const MobileSidebar: React.FC<MobileSidebarProps> = ({
                         </span>
                       </div>
                       <p className="text-sm text-gray-400 truncate">
-                        {chat.status === 'online' ? 'Online' : `Last seen ${chat.lastSeen && formatTime(chat.lastSeen)}`}
+                        {chat.status === 'online' ? 'Online' : chat.lastSeen ? `Last seen ${formatTime(chat.lastSeen)}` : 'offline'}
                       </p>
                     </div>
                   </motion.div>

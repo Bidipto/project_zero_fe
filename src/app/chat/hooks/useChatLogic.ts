@@ -23,7 +23,7 @@ export const useChatLogic = () => {
   const router = useRouter();
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const readTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const readTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null); //  this ensures type safety
 
   // State
   const [currentUser, setCurrentUser] = useState<{ name: string; avatar?: string } | null>(null);
@@ -59,7 +59,7 @@ export const useChatLogic = () => {
   const transformUserData = useCallback((userData: any, index: number = 0): User => {
     if (typeof userData === 'string') {
       return {
-        id: `user-${userData}-${index}`,
+        id: `user-${String(userData).replace(/\s+/g, '_')}-${index}`,
         name: userData,
         status: 'online' as const,
         avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(userData)}&background=8b5cf6&color=fff&size=128`,
@@ -69,7 +69,9 @@ export const useChatLogic = () => {
     return {
       id: userData.id || userData.user_id || userData.username || `user-${index}`,
       name: userData.username || userData.name || userData.display_name || `User ${index + 1}`,
-      status: userData.status || userData.is_online ? 'online' : 'offline',
+      status: typeof userData.status === 'string' 
+        ? (userData.status === 'online'|| userData.status === 'away' ? userData.status : 'offline') 
+        : (userData.is_online ? 'online' : 'offline'),
       avatar: userData.avatar || userData.profile_picture || 
               `https://ui-avatars.com/api/?name=${encodeURIComponent(userData.username || userData.name || `User ${index + 1}`)}&background=8b5cf6&color=fff&size=128`,
       lastSeen: userData.last_seen ? new Date(userData.last_seen) : new Date()
@@ -210,7 +212,7 @@ export const useChatLogic = () => {
     if (readTimeoutRef.current) clearTimeout(readTimeoutRef.current);
     
     const messageText = inputMessage.trim();
-    const tempId = `msg-${Date.now()}-${Math.random()}`;
+    const tempId = crypto.randomUUID();
     const newMessage: Message = { 
       text: messageText, 
       sender: 'user', 

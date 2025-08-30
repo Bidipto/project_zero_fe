@@ -138,7 +138,7 @@ export const StartChatModal: React.FC<StartChatModalProps> = ({
                               <span className="text-xs text-gray-400 capitalize">{user.status}</span>
                             </div>
                             <p className="text-sm text-gray-400 truncate">
-                              {user.status === 'online' ? 'Active now' : `Last seen ${user.lastSeen && formatTime(user.lastSeen)}`}
+                              {user.status === 'online' ? 'Active now' : user.lastSeen ?  `Last seen ${formatTime(user.lastSeen)}` : 'Offline'}
                             </p>
                           </div>
                           <div className="flex-shrink-0">

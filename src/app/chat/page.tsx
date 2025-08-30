@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatLogic } from './hooks/useChatLogic';
 import { Sidebar } from './components/Sidebar';
@@ -41,12 +42,15 @@ const ChatPage = () => {
     statusColors
   } = useChatLogic();
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+
+  // updated this code as per the use cases of composition events in different browsers and IMEs (eg. chjinese, japanese, korean etc.)
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if ((e as any).isComposing || (e.nativeEvent as any).isComposing) return;
     if (e.key === 'Enter' && !e.shiftKey && inputMessage.trim() && !isSending) {
       e.preventDefault();
       handleSendMessage();
     }
-  };
+  }, [inputMessage, isSending, handleSendMessage]);
 
   const handleCreateNewChatFromModal = async () => {
     if (!newChatUsername.trim()) return;
