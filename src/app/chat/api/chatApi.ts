@@ -33,17 +33,22 @@ export class ChatApiService {
 
     try {
       // Merge headers with auth headers
-      const mergedOptions: RequestInit = {
+      const base = this.getAuthHeaders();
+      const extra = (()=>{
+        const h = options.headers;
+        if (!h) return {};
+        if (h instanceof Headers) return Object.fromEntries(h.entries());
+        if(Array.isArray(h)) return Object.fromEntries(h as [string, string][]);
+        return h as Record<string, string>;
+      })();
+      const response = await fetch(url, {
         ...options,
         headers: {
-          ...this.getAuthHeaders(),
-          ...options.headers,
+          ...base,
+          ...extra
         },
         signal: controller.signal,
-      };
-
-      const response = await fetch(url, mergedOptions);
-
+      });
       // Clear timeout on successful response
       clearTimeout(timeoutId);
 

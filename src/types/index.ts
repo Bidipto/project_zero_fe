@@ -53,10 +53,11 @@ export interface ChatState {
 }
 
 // API Response types
-export interface ApiResponse<T> {
+export interface ApiResponse<T = any> {
+  success?: boolean
   data: T;
   message: string;
-  success: boolean;
+  error?: string;
 }
 
 export interface PaginatedResponse<T> extends ApiResponse<T[]> {

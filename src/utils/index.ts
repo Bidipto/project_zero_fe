@@ -33,6 +33,7 @@ export const formatDateTime = (date: Date | string): string => {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
+    hour12: false
   });
 };
 
@@ -162,10 +163,10 @@ export const debounce = <T extends (...args: any[]) => any>(
   func: T,
   delay: number
 ): ((...args: Parameters<T>) => void) => {
-  let timeoutId: NodeJS.Timeout;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined; // this is better than nodejs timer as that one works only in the browser. 
   return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
-    timeoutId = setTimeout(() => func.apply(null, args), delay);
+    if (timeoutId) clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
   };
 };
 
@@ -221,13 +222,21 @@ export const storage = {
 };
 
 // URL utilities
-export const buildUrl = (baseUrl: string, params: Record<string, string | number>): string => {
-  const url = new URL(baseUrl);
-  Object.entries(params).forEach(([key, value]) => {
-    url.searchParams.set(key, String(value));
-  });
-  return url.toString();
-};
+export const buildUrl = (
+baseUrl: string,
+params: Record<string, string | number>,
+base?: string
+): string => {
+const fallback = 'http://localhost';
+const origin =
+  base ??
+  (typeof window !== 'undefined' ? window.location.origin : fallback);
+const url = new URL(baseUrl, origin);
+   Object.entries(params).forEach(([key, value]) => {
+     url.searchParams.set(key, String(value));
+   });
+   return url.toString();
+ };
 
 // Class name utility (similar to clsx)
 export const cn = (...classes: (string | undefined | null | false)[]): string => {
