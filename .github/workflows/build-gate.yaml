@@ -1,0 +1,13 @@
+name: build-gate
+on:
+  pull_request:
+    branches:
+      main
+
+jobs:
+  build-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+  
