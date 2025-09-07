@@ -152,7 +152,7 @@ See the [GitHub OAuth Setup Guide](./GITHUB_OAUTH_SETUP.md) for detailed API spe
 
 ---
 
-## 📄 License
+## 📄 Licenses
 
 Licensed under [MIT](LICENSE)
 
