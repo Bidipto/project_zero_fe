@@ -1,0 +1,22 @@
+name: build-gate
+on:
+  pull_request:
+    branches:
+      main
+
+jobs:
+  build-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+      - name: run ci
+        run: npm ci
+      - name: run build
+        run: npm run build
+  
