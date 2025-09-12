@@ -1,3 +1,4 @@
+"use client";
 import React, { createContext, useCallback, ReactNode, useState, useEffect, useRef, FC, useContext } from "react";
 
 export interface WebSocketMessage {
@@ -32,8 +33,8 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
     const [lastMessage, setLastMessage] = useState<WebSocketMessage | null>(null);
     const [currentUserId, setCurrentUserId] = useState<string | number | null>(null);
     const subscribersRef = useRef<((message: WebSocketMessage) => void)[]>([]);
-    const heartbeatIntervalRef = useRef<NodeJS.Timeout | null>(null);   
-    const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const heartbeatIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const reconnectAttemptsRef = useRef(0);
     const maxReconnectAttempts = 5;
     const heartbeatInterval = 30000;
@@ -84,8 +85,9 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
         reconnectAttemptsRef.current = 0;
 
         try {
-            const wsUrlSimple = `ws://localhost:8000/v1/chat/ws/${userId}`;
-            
+            const base = baseUrl.replace(/\/$/, '')
+            const scheme = base.startsWith('ws') ? base : base.replace(/^http/, 'ws')
+            const wsUrlSimple = `${scheme}/v1/chat/ws/${userId}`;
             console.log('Connecting to WebSocket:', wsUrlSimple);
             console.log('User ID:', userId);
             
@@ -121,7 +123,7 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
                 console.log('WebSocket connection closed - attempting reconnect');
                 setSocket(null);
                 setConnectionStatus('disconnected');
-                //stopHeartbeat();
+                stopHeartbeat();
                 if (reconnectAttemptsRef.current < maxReconnectAttempts) {
                     const delay = Math.min(1000 + (reconnectAttemptsRef.current * 1000), 5000);
                     reconnectAttemptsRef.current++;
@@ -183,8 +185,7 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
 
         // Format message according to backend expectation: "user_id_chat_id_other_user_id_message_content"
         const message = `$16_${chatId}_17_${content}`;
-        socket.send(message);
-        console.log('SEND');
+        if(!socket) return
         
         if (socket && socket.readyState === WebSocket.OPEN) {
             console.log('Sending WebSocket message:', message);
