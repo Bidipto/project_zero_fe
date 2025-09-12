@@ -69,9 +69,16 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
     }, []);
 
     const connect = useCallback((userId: string | number) => {
-        if (socket && socket.readyState === WebSocket.OPEN) {
-            return;
+        // Clear any pending reconnect timer first
+        if (reconnectTimeoutRef.current) {
+            clearTimeout(reconnectTimeoutRef.current);
+            reconnectTimeoutRef.current = null;
         }
+
+        // Check if already connected or connecting
+        if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+             return;
+         }
 
         // Validate user ID before connecting
         if (!userId || userId === 'undefined' || userId === 'null') {
@@ -93,10 +100,13 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
             
             const websocket = new WebSocket(wsUrlSimple);
             
+            // Assign to socket immediately and set state to prevent parallel connections
+            setSocket(websocket);
+            
             websocket.onopen = () => {
                 console.log('WebSocket connected successfully');
                 setConnectionStatus('connected');
-                setSocket(websocket);
+                // Socket is already set above, no need to set again
                 reconnectAttemptsRef.current = 0;
                 startHeartbeat();
                 
@@ -124,6 +134,13 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
                 setSocket(null);
                 setConnectionStatus('disconnected');
                 stopHeartbeat();
+                
+                // Clear any existing reconnect timer before setting a new one
+                if (reconnectTimeoutRef.current) {
+                    clearTimeout(reconnectTimeoutRef.current);
+                    reconnectTimeoutRef.current = null;
+                }
+                
                 if (reconnectAttemptsRef.current < maxReconnectAttempts) {
                     const delay = Math.min(1000 + (reconnectAttemptsRef.current * 1000), 5000);
                     reconnectAttemptsRef.current++;
@@ -150,6 +167,7 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
     }, [baseUrl, socket, startHeartbeat, stopHeartbeat, notifySubscribers, maxReconnectAttempts]);
 
     const disconnect = useCallback(() => {
+        // Clear any pending reconnect timer
         if (reconnectTimeoutRef.current) {
             clearTimeout(reconnectTimeoutRef.current);
             reconnectTimeoutRef.current = null;
@@ -169,6 +187,11 @@ export const WebSocketProvider: FC<WebSocketProviderProps> = ({ children, baseUr
 
     const reconnect = useCallback(() => {
         if (currentUserId !== null) {
+            // Clear any pending reconnect timer before disconnecting
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+                reconnectTimeoutRef.current = null;
+            }
             disconnect();
             setTimeout(() => connect(currentUserId), 1000);
         }
