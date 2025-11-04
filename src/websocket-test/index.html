@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>websocket test page</title>
+</head>
+<body>
+    <div>
+        <h1>
+        This is a simple websocket test page.
+        </h1>
+        <div id="status">Status: <span id="statusText">Connecting</span></div>
+        <ul id="messages"></ul>
+        <form id="message-form" action="#" method="post">
+            <textarea placeholder="type your message here" id="message" required></textarea>
+            <button type="submit">Send</button>
+            <button type="button" id="close-button">Close</button>
+        </form>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>

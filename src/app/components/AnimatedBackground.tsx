@@ -3,6 +3,8 @@
 import React, { useRef, useEffect } from 'react';
 import { Renderer, Camera, Geometry, Program, Mesh } from 'ogl';
 
+const DEFAULT_COLORS = ['#4c1d95', '#a78bfa', '#7e22ce']; 
+
 interface ParticleBackgroundProps {
   className?: string;
   particleCount?: number;
@@ -23,7 +25,7 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
   particleCount = 2000,
   particleSpread = 10,
   speed = 0.1,
-  colors = ['#4c1d95', '#a78bfa', '#7e22ce'],
+  colors = DEFAULT_COLORS,
   moveParticlesOnHover = true,
   particleHoverFactor = 1,
   alphaParticles = true,
@@ -42,9 +44,9 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
   const elapsedRef = useRef<number>(0);
 
   useEffect(() => {
-    const initWebGL = async () => {
+    const initWebGL = () => {
       const container = containerRef.current;
-      if (!container) return;
+      if (!container) return () => {};
 
       const renderer = new Renderer({ depth: false, alpha: true });
       const gl = renderer.gl;
@@ -119,7 +121,7 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
         color: { size: 3, data: particleColors },
       });
 
-      const vertex = /* glsl */ `
+      const vertex = `
         attribute vec3 position;
         attribute vec4 random;
         attribute vec3 color;
@@ -154,7 +156,7 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
         }
       `;
 
-      const fragment = /* glsl */ `
+      const fragment = `
         precision highp float;
 
         uniform float uTime;
@@ -230,26 +232,33 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
 
       lastTimeRef.current = performance.now();
       animationFrameId.current = requestAnimationFrame(animate);
-
+      // this is the cleanup function. else memory go leaking 
       return () => {
         if (animationFrameId.current) {
           cancelAnimationFrame(animationFrameId.current);
+          animationFrameId.current = null;
         }
         window.removeEventListener('resize', handleResize);
         if (moveParticlesOnHover) {
           window.removeEventListener('mousemove', handleMouseMove);
         }
-        if (container.contains(gl.canvas)) {
-          container.removeChild(gl.canvas);
+        try {
+          if (container && gl && container.contains(gl.canvas)) {
+            container.removeChild(gl.canvas);
+          }
+        } catch (e) {
         }
+        rendererRef.current = null;
+        particlesRef.current = null;
       };
     };
-    initWebGL();
+
+    const cleanup = initWebGL();
+    return cleanup;
   }, [
     particleCount,
     particleSpread,
     speed,
-    colors,
     moveParticlesOnHover,
     particleHoverFactor,
     alphaParticles,
