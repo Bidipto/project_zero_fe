@@ -3,10 +3,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Renderer, Camera, Geometry, Program, Mesh } from 'ogl';
 
-// Make default colors a stable module-level constant so its reference doesn't change
-// on every render. This prevents the `colors` prop from changing identity and
-// retriggering the `useEffect` that recreates the WebGL context.
-const DEFAULT_COLORS = ['#4c1d95', '#a78bfa', '#7e22ce'];
+const DEFAULT_COLORS = ['#4c1d95', '#a78bfa', '#7e22ce']; 
 
 interface ParticleBackgroundProps {
   className?: string;
@@ -124,7 +121,7 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
         color: { size: 3, data: particleColors },
       });
 
-      const vertex = /* glsl */ `
+      const vertex = `
         attribute vec3 position;
         attribute vec4 random;
         attribute vec3 color;
@@ -159,7 +156,7 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
         }
       `;
 
-      const fragment = /* glsl */ `
+      const fragment = `
         precision highp float;
 
         uniform float uTime;
@@ -235,8 +232,7 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
 
       lastTimeRef.current = performance.now();
       animationFrameId.current = requestAnimationFrame(animate);
-
-      // Return cleanup so useEffect can call it when deps change / unmount
+      // this is the cleanup function. else memory go leaking 
       return () => {
         if (animationFrameId.current) {
           cancelAnimationFrame(animationFrameId.current);
@@ -251,7 +247,6 @@ export const AnimatedBackground: React.FC<ParticleBackgroundProps> = ({
             container.removeChild(gl.canvas);
           }
         } catch (e) {
-          // ignore
         }
         rendererRef.current = null;
         particlesRef.current = null;
